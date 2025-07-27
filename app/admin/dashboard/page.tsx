@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Registration {
   id: number;
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
     if (storedUserName) setUserName(storedUserName);
 
     fetchData();
-  }, [fetchData]);
+  }, []);
 
   useEffect(() => {
     // Redirect non-administrators from 'users' tab
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
 
 
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
     try {
       const [registrationsRes, usersRes] = await Promise.all([
         fetch('/api/registrations'),
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [updateStats, updateAnalytics]);
+  };
 
   const updateStats = (registrationsCount: number, usersCount: number, registrationsData: Registration[]) => {
     // Calculate revenue - only approved registrations count towards revenue
