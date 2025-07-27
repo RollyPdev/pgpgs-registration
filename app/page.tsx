@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
-import Head from "next/head";
+
 
 interface AddressData {
   code: string;
@@ -28,6 +28,7 @@ export default function RegistrationPage() {
   const [terms, setTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   
   // Address state
   const [regions, setRegions] = useState<AddressData[]>([]);
@@ -101,6 +102,7 @@ export default function RegistrationPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
+      setShowWelcomeModal(true);
     }, 2500);
     
     // Load regions on component mount
@@ -892,7 +894,7 @@ export default function RegistrationPage() {
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo and Brand */}
           <div className="flex items-center gap-3 mb-4 md:mb-0">
-            <img src="/PGPGS Logo.png" alt="PGPGS Logo" className="w-12 h-12 rounded-full border-2 border-indigo-400 shadow-md bg-white object-contain" />
+            <Image src="/PGPGS Logo.png" alt="PGPGS Logo" width={48} height={48} className="rounded-full border-2 border-indigo-400 shadow-md bg-white object-contain" />
             <div>
               <div className="font-extrabold text-lg tracking-wide text-indigo-200 drop-shadow">Pi Gamma Phi Gamma Sigma</div>
               <div className="text-xs text-slate-300 font-medium">Roxas City Capiz Chapter</div>
@@ -900,7 +902,7 @@ export default function RegistrationPage() {
           </div>
           {/* Copyright & Developer */}
           <div className="text-center md:text-right flex-1">
-            <div className="text-sm font-medium text-slate-200">Developed by <span className="font-semibold text-indigo-300">Brother Rolly O. Paredes</span></div>
+            <div className="text-sm font-medium text-slate-200">Developed by <a href="https://rollyparedes.net" target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-300 hover:text-indigo-200 transition-colors">Brother Rolly O. Paredes</a></div>
             <div className="text-xs text-slate-400 mt-1">© {new Date().getFullYear()} Pi Gamma Phi Gamma Sigma. All rights reserved.</div>
           </div>
           {/* Social/Contact Icons */}
@@ -915,6 +917,84 @@ export default function RegistrationPage() {
           </div>
         </div>
       </footer>
+      
+      {/* Welcome Modal */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-slideUp border border-gray-100 overflow-hidden">
+            {/* Header with Golden Background */}
+            <div className="relative bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 p-6 text-center overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-4 left-4 w-12 h-12 bg-white rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                <div className="absolute top-8 right-8 w-8 h-8 bg-white rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="absolute bottom-6 left-8 w-6 h-6 bg-white rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+                <div className="absolute bottom-4 right-6 w-10 h-10 bg-white rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+              </div>
+              
+              {/* Logo */}
+              <div className="relative z-10 mb-4">
+                <div className="w-16 h-16 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30 shadow-lg">
+                  <Image
+                    src="/PGPGS Logo.png"
+                    alt="PGPGS Logo"
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                    priority
+                  />
+                </div>
+              </div>
+              
+              {/* Welcome Text */}
+              <div className="relative z-10">
+                <h1 className="text-xl font-bold text-white mb-2 drop-shadow-lg">
+                  🎉 Welcome Brothers & Sisters! 🎉
+                </h1>
+                <h2 className="text-lg font-semibold text-white/90 mb-2">
+                  Pi Gamma Phi Gamma Sigma
+                </h2>
+                <p className="text-sm text-white/80 font-medium">
+                  Roxas City Capiz Chapter
+                </p>
+              </div>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full mb-3">
+                  <span className="text-2xl">🏆</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  50th Golden Anniversary
+                </h3>
+                <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-4 border border-amber-200">
+                  <p className="text-gray-700 text-sm leading-relaxed mb-3">
+                    Join us in celebrating our fraternity&apos;s <span className="font-bold text-amber-600">50th Golden Anniversary</span> on <span className="font-bold text-indigo-600">September 27, 2025</span>.
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    Five decades of brotherhood, sisterhood, and shared values.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Call to Action */}
+              <div className="text-center">
+                <button
+                  onClick={() => setShowWelcomeModal(false)}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm"
+                >
+                  Register Now
+                </button>
+                <p className="text-xs text-gray-500 mt-2">
+                  Let&apos;s make this golden anniversary unforgettable! ✨
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Enhanced Success Modal */}
       {showSuccess && (

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Registration {
   id: number;
@@ -46,6 +47,7 @@ export default function AdminDashboard() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showWarningMessage, setShowWarningMessage] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
@@ -148,10 +150,21 @@ export default function AdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    // Auto-refresh data every 2 seconds for instant updates
+    const refreshInterval = setInterval(() => {
+      fetchData();
+    }, 2000);
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
 
 
   const fetchData = async () => {
     try {
+      if (!loading) setRefreshing(true);
+      
       const [registrationsRes, usersRes] = await Promise.all([
         fetch('/api/registrations'),
         fetch('/api/users')
@@ -177,6 +190,7 @@ export default function AdminDashboard() {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -746,7 +760,26 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.filter(stat => userRole === 'Administrator' || stat.label !== 'Total Users').map((stat, index) => {
+              {refreshing ? (
+                // Skeleton loading for stats
+                [...Array(userRole === 'Administrator' ? 4 : 3)].map((_, index) => (
+                  <div key={index} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 animate-pulse">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gray-200 rounded-xl"></div>
+                          <div>
+                            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                            <div className="h-8 bg-gray-200 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-16 h-6 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                stats.filter(stat => userRole === 'Administrator' || stat.label !== 'Total Users').map((stat, index) => {
                 const getIcon = (label: string) => {
                   switch (label) {
                     case 'Total Registrations':
@@ -816,7 +849,8 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 );
-              })}
+              })
+              )}
             </div>
 
             {/* Charts and Analytics */}
@@ -886,7 +920,25 @@ export default function AdminDashboard() {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {recentActivity.length > 0 ? (
+                  {refreshing ? (
+                    // Skeleton loading for recent activity
+                    [...Array(3)].map((_, index) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg animate-pulse">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+                          <div className="h-5 bg-gray-200 rounded-full w-16"></div>
+                        </div>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="h-3 bg-gray-200 rounded w-24"></div>
+                          <div className="h-3 bg-gray-200 rounded w-16"></div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="h-3 bg-gray-200 rounded w-16"></div>
+                          <div className="h-3 bg-gray-200 rounded w-12"></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : recentActivity.length > 0 ? (
                     recentActivity.map((registration) => (
                       <div 
                         key={registration.id} 
@@ -1220,7 +1272,35 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
-                    {registrations.map((registration, index) => (
+                    {refreshing ? (
+                      // Skeleton loading for table rows
+                      [...Array(5)].map((_, index) => (
+                        <tr key={index} className="animate-pulse">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                              <div>
+                                <div className="h-4 bg-gray-200 rounded w-24 mb-1"></div>
+                                <div className="h-3 bg-gray-200 rounded w-32"></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                          <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-full w-16"></div></td>
+                          <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                          <td className="px-6 py-4"><div className="h-6 bg-gray-200 rounded-full w-20"></div></td>
+                          <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                          <td className="px-6 py-4">
+                            <div className="flex space-x-2">
+                              <div className="h-7 bg-gray-200 rounded w-12"></div>
+                              <div className="h-7 bg-gray-200 rounded w-12"></div>
+                              <div className="h-7 bg-gray-200 rounded w-16"></div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      registrations.map((registration, index) => (
                       <tr key={registration.id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center space-x-3">
@@ -1301,7 +1381,8 @@ export default function AdminDashboard() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -2015,7 +2096,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo and Brand */}
           <div className="flex items-center gap-3 mb-4 md:mb-0">
-            <img src="/PGPGS Logo.png" alt="PGPGS Logo" className="w-12 h-12 rounded-full border-2 border-indigo-400 shadow-md bg-white object-contain" />
+            <Image src="/PGPGS Logo.png" alt="PGPGS Logo" width={48} height={48} className="rounded-full border-2 border-indigo-400 shadow-md bg-white object-contain" />
             <div>
               <div className="font-extrabold text-lg tracking-wide text-indigo-200 drop-shadow">Pi Gamma Phi Gamma Sigma</div>
               <div className="text-xs text-slate-300 font-medium">Admin Dashboard</div>
@@ -2023,7 +2104,7 @@ export default function AdminDashboard() {
           </div>
           {/* Copyright & Developer */}
           <div className="text-center md:text-right flex-1">
-            <div className="text-sm font-medium text-slate-200">Developed by <span className="font-semibold text-indigo-300">Brother Rolly O. Paredes</span></div>
+            <div className="text-sm font-medium text-slate-200">Developed by <a href="https://rollyparedes.net" target="_blank" rel="noopener noreferrer" className="font-semibold text-indigo-300 hover:text-indigo-200 transition-colors">Brother Rolly O. Paredes</a></div>
             <div className="text-xs text-slate-400 mt-1">© {new Date().getFullYear()} Pi Gamma Phi Gamma Sigma. All rights reserved.</div>
           </div>
           {/* Social/Contact Icons */}
