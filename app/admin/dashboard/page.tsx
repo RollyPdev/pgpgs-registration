@@ -61,6 +61,8 @@ export default function AdminDashboard() {
   const [userRole, setUserRole] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Registration modal states
   const [showViewRegistrationModal, setShowViewRegistrationModal] = useState(false);
@@ -137,6 +139,15 @@ export default function AdminDashboard() {
       setActiveTab('overview');
     }
   }, [activeTab, userRole]);
+
+  useEffect(() => {
+    // Update clock every second
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
 
 
@@ -627,7 +638,26 @@ export default function AdminDashboard() {
                 Welcome back, {userName} ({userRole})
               </p>
             </div>
-            <button
+            <div className="flex items-center space-x-6">
+              <div className="text-right">
+                <div className="text-lg font-semibold text-gray-900">
+                  {currentTime.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                  })}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {currentTime.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
+              </div>
+              <button
               onClick={handleLogout}
               disabled={isLoggingOut}
               className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -709,7 +739,7 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => {
+              {stats.filter(stat => userRole === 'Administrator' || stat.label !== 'Total Users').map((stat, index) => {
                 const getIcon = (label: string) => {
                   switch (label) {
                     case 'Total Registrations':
