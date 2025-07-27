@@ -35,12 +35,17 @@ export default function AdminLogin() {
         const userData = await response.json();
         console.log('Login successful, user data:', { id: userData.id, name: userData.name, role: userData.role });
         
-        // Store JWT token and user data
+        // Store JWT token and user data in localStorage and cookies
         localStorage.setItem('adminAuth', 'true');
         localStorage.setItem('userRole', userData.role);
         localStorage.setItem('userName', userData.name);
         localStorage.setItem('authToken', userData.token);
         localStorage.setItem('userId', userData.id.toString());
+        
+        // Set HTTP-only style cookies for middleware
+        document.cookie = `authToken=${userData.token}; path=/; max-age=86400; SameSite=Strict`;
+        document.cookie = `userRole=${userData.role}; path=/; max-age=86400; SameSite=Strict`;
+        document.cookie = `adminAuth=true; path=/; max-age=86400; SameSite=Strict`;
         
         console.log('Stored auth data in localStorage, redirecting...');
         

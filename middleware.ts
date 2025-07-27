@@ -1,8 +1,41 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyTokenEdge } from './lib/jwt';
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
+  
+  // Handle authentication for admin routes
+  const pathname = request.nextUrl.pathname;
+  
+  // Check if user is accessing admin login page
+  if (pathname === '/admin') {
+    const authToken = request.cookies.get('authToken')?.value;
+    
+    if (authToken) {
+      const payload = verifyTokenEdge(authToken);
+      if (payload) {
+        // User is already authenticated, redirect to dashboard
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+      }
+    }
+  }
+  
+  // Check if user is accessing protected admin routes
+  if (pathname.startsWith('/admin/') && pathname !== '/admin') {
+    const authToken = request.cookies.get('authToken')?.value;
+    
+    if (!authToken) {
+      // No token, redirect to login
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+    
+    const payload = verifyTokenEdge(authToken);
+    if (!payload) {
+      // Invalid token, redirect to login
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+  }
 
   // Basic Security Headers (less restrictive)
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
@@ -39,11 +72,11 @@ export function middleware(request: NextRequest) {
     '/Thumbs.db'
   ];
 
-  const pathname = request.nextUrl.pathname.toLowerCase();
+  const pathnameLower = pathname.toLowerCase();
   
   // Check for sensitive paths (reduced protection)
   for (const sensitivePath of sensitivePaths) {
-    if (pathname.includes(sensitivePath.toLowerCase())) {
+    if (pathnameLower.includes(sensitivePath.toLowerCase())) {
       return new NextResponse('Access Denied', { 
         status: 403,
         headers: {

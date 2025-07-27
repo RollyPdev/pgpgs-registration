@@ -432,11 +432,18 @@ export default function AdminDashboard() {
     
     // Add a small delay for better UX
     setTimeout(() => {
+      // Clear localStorage
       localStorage.removeItem('adminAuth');
       localStorage.removeItem('userRole');
       localStorage.removeItem('userName');
       localStorage.removeItem('authToken');
       localStorage.removeItem('userId');
+      
+      // Clear cookies
+      document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'adminAuth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      
       window.location.href = '/admin';
     }, 1500);
   };
