@@ -130,9 +130,7 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-xs text-slate-500">
-          Use the credentials you created in the admin dashboard
-        </div>
+
       </div>
     </div>
   );
