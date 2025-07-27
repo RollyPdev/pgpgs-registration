@@ -116,6 +116,9 @@ export default function AdminDashboard() {
   const [genderBreakdown, setGenderBreakdown] = useState<Array<{ gender: string; count: number }>>([]);
   const [membershipBreakdown, setMembershipBreakdown] = useState<Array<{ membership: string; count: number }>>([]);
   const [revenueBreakdown, setRevenueBreakdown] = useState<Array<{ membership: string; revenue: number }>>([]);
+  
+  // Revenue status filter
+  const [revenueStatusFilter, setRevenueStatusFilter] = useState<string>('');
 
   useEffect(() => {
     // Get user info from localStorage
@@ -134,6 +137,14 @@ export default function AdminDashboard() {
       setActiveTab('overview');
     }
   }, [activeTab, userRole]);
+
+  useEffect(() => {
+    // Update stats and analytics when revenue status filter changes
+    if (registrations.length > 0) {
+      updateStats(registrations.length, users.length, registrations);
+      updateAnalytics(registrations);
+    }
+  }, [revenueStatusFilter]);
 
   const fetchData = async () => {
     try {
@@ -166,8 +177,10 @@ export default function AdminDashboard() {
   };
 
   const updateStats = (registrationsCount: number, usersCount: number, registrationsData: Registration[]) => {
-    // Calculate revenue and pending count from the provided registrations data
-    const totalRevenue = registrationsData.reduce((sum, reg) => sum + reg.paymentAmount, 0);
+    // Calculate revenue based on status filter - only approved registrations count towards revenue
+    const approvedRegistrations = registrationsData.filter(reg => reg.status === 'Approved');
+    const totalRevenue = revenueStatusFilter === 'Approved' ? 
+      approvedRegistrations.reduce((sum, reg) => sum + reg.paymentAmount, 0) : 0;
     const pendingCount = registrationsData.filter(reg => reg.status === 'Pending').length;
 
     setStats([
@@ -289,8 +302,12 @@ export default function AdminDashboard() {
   };
 
   const getRevenueBreakdown = (data: Registration[]): Array<{ membership: string; revenue: number }> => {
+    // Only calculate revenue for approved registrations when status filter is 'Approved'
+    const filteredData = revenueStatusFilter === 'Approved' ? 
+      data.filter(reg => reg.status === 'Approved') : [];
+    
     const revenueByMembership: { [key: string]: number } = {};
-    data.forEach(reg => {
+    filteredData.forEach(reg => {
       revenueByMembership[reg.membership] = (revenueByMembership[reg.membership] || 0) + reg.paymentAmount;
     });
     
@@ -853,30 +870,81 @@ export default function AdminDashboard() {
 
             {/* Revenue Breakdown Section */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue Breakdown</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Revenue Breakdown</h3>
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">Status:</label>
+                  <select
+                    value={revenueStatusFilter}
+                    onChange={(e) => {
+                      setRevenueStatusFilter(e.target.value);
+                      // Refresh analytics with new filter
+                      updateStats(registrations.length, users.length, registrations);
+                      updateAnalytics(registrations);
+                    }}
+                    className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Select Status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                  </select>
+                </div>
+              </div>
               <div className="space-y-4">
+                {/* Status Message */}
+                {!revenueStatusFilter && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                    <p className="text-sm text-yellow-800">
+                      Please select a status to view revenue breakdown. Revenue is only calculated for approved registrations.
+                    </p>
+                  </div>
+                )}
+                
+                {revenueStatusFilter === 'Pending' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                    <p className="text-sm text-blue-800">
+                      Pending registrations do not contribute to revenue until approved.
+                    </p>
+                  </div>
+                )}
+                
                 {/* Total Revenue */}
                 <div className="border-b border-gray-200 pb-3">
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-semibold text-gray-900">Total Revenue:</span>
                     <span className="text-lg font-bold text-green-600">
-                      ₱{registrations.reduce((sum, reg) => sum + reg.paymentAmount, 0).toLocaleString()}
+                      ₱{revenueStatusFilter === 'Approved' ? 
+                        registrations.filter(reg => reg.status === 'Approved').reduce((sum, reg) => sum + reg.paymentAmount, 0).toLocaleString() : 
+                        '0'}
                     </span>
                   </div>
                 </div>
                 
                 {/* Revenue by Membership Type */}
                 <div className="space-y-3">
-                  {revenueBreakdown.length > 0 ? (
-                    revenueBreakdown.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{item.membership}:</span>
-                        <span className="text-sm font-medium text-gray-900">₱{item.revenue.toLocaleString()}</span>
+                  {revenueStatusFilter === 'Approved' ? (
+                    revenueBreakdown.length > 0 ? (
+                      revenueBreakdown.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">{item.membership}:</span>
+                          <span className="text-sm font-medium text-gray-900">₱{item.revenue.toLocaleString()}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500 text-sm">No approved registrations found</p>
                       </div>
-                    ))
+                    )
                   ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm">No revenue data available</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Member (₱500):</span>
+                        <span className="text-sm font-medium text-gray-900">₱0</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Alumni (₱1,000):</span>
+                        <span className="text-sm font-medium text-gray-900">₱0</span>
+                      </div>
                     </div>
                   )}
                 </div>
