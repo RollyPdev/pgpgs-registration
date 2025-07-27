@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
+  DATABASE_URL = "file:./dev.db"
 
 [functions]
   node_bundler = "esbuild"
