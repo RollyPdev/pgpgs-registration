@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface Registration {
   id: number;
@@ -107,8 +107,6 @@ export default function AdminDashboard() {
 
   // Registration trends data
   const [registrationTrends, setRegistrationTrends] = useState<Array<{ date: string; count: number }>>([]);
-  const [dailyTrends, setDailyTrends] = useState<Array<{ day: string; count: number }>>([]);
-  const [statusBreakdown, setStatusBreakdown] = useState<Array<{ status: string; count: number }>>([]);
   const [recentActivity, setRecentActivity] = useState<Registration[]>([]);
   
   // Analytics data
@@ -128,7 +126,7 @@ export default function AdminDashboard() {
     if (storedUserName) setUserName(storedUserName);
 
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   useEffect(() => {
     // Redirect non-administrators from 'users' tab
@@ -139,7 +137,7 @@ export default function AdminDashboard() {
 
 
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [registrationsRes, usersRes] = await Promise.all([
         fetch('/api/registrations'),
@@ -167,7 +165,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const updateStats = (registrationsCount: number, usersCount: number, registrationsData: Registration[]) => {
     // Calculate revenue - only approved registrations count towards revenue
@@ -188,13 +186,7 @@ export default function AdminDashboard() {
     const trends = getRegistrationTrends(data);
     setRegistrationTrends(trends);
 
-    // Daily trends
-    const daily = getDailyRegistrationTrends(data);
-    setDailyTrends(daily);
 
-    // Status breakdown
-    const breakdown = getRegistrationStatusBreakdown(data);
-    setStatusBreakdown(breakdown);
 
     // Recent activity
     const recent = getRecentActivity(data);
@@ -230,36 +222,7 @@ export default function AdminDashboard() {
     }));
   };
 
-  const getDailyRegistrationTrends = (data: Registration[]): Array<{ day: string; count: number }> => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const dayCounts: { [key: string]: number } = {};
-    
-    // Initialize all days with 0
-    days.forEach(day => {
-      dayCounts[day] = 0;
-    });
-    
-    // Count registrations by day of week
-    data.forEach(reg => {
-      const dayOfWeek = new Date(reg.createdAt).toLocaleDateString('en-US', { weekday: 'short' });
-      if (dayCounts.hasOwnProperty(dayOfWeek)) {
-        dayCounts[dayOfWeek]++;
-      }
-    });
-    
-    return days.map(day => ({
-      day,
-      count: dayCounts[day]
-    }));
-  };
 
-  const getRegistrationStatusBreakdown = (data: Registration[]): Array<{ status: string; count: number }> => {
-    const statuses = ['Pending', 'Approved', 'Rejected'];
-    return statuses.map(status => ({
-      status,
-      count: data.filter(reg => reg.status === status).length
-    }));
-  };
 
   const getRecentActivity = (data: Registration[]): Registration[] => {
     if (!data || data.length === 0) return [];
@@ -1268,7 +1231,7 @@ export default function AdminDashboard() {
               </div>
               <div className="mb-6">
                 <p className="text-gray-600 leading-relaxed">
-                  Are you sure you want to delete user <span className="font-semibold text-gray-900">"{deletingUser.name}"</span>? This action cannot be undone.
+                  Are you sure you want to delete user <span className="font-semibold text-gray-900">{deletingUser.name}</span>? This action cannot be undone.
                 </p>
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -1642,7 +1605,7 @@ export default function AdminDashboard() {
               </div>
               <div className="mb-6">
                 <p className="text-gray-600 leading-relaxed">
-                  Are you sure you want to delete the registration for <span className="font-semibold text-gray-900">"{selectedRegistration.firstName} {selectedRegistration.lastName}"</span>? This action cannot be undone.
+                  Are you sure you want to delete the registration for <span className="font-semibold text-gray-900">{selectedRegistration.firstName} {selectedRegistration.lastName}</span>? This action cannot be undone.
                 </p>
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
