@@ -7,13 +7,5 @@
   NPM_FLAGS = "--legacy-peer-deps"
   DATABASE_URL = "file:./dev.db"
 
-[functions]
-  node_bundler = "esbuild"
-
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
