@@ -117,8 +117,7 @@ export default function AdminDashboard() {
   const [membershipBreakdown, setMembershipBreakdown] = useState<Array<{ membership: string; count: number }>>([]);
   const [revenueBreakdown, setRevenueBreakdown] = useState<Array<{ membership: string; revenue: number }>>([]);
   
-  // Revenue status filter
-  const [revenueStatusFilter, setRevenueStatusFilter] = useState<string>('');
+
 
   useEffect(() => {
     // Get user info from localStorage
@@ -138,13 +137,7 @@ export default function AdminDashboard() {
     }
   }, [activeTab, userRole]);
 
-  useEffect(() => {
-    // Update stats and analytics when revenue status filter changes
-    if (registrations.length > 0) {
-      updateStats(registrations.length, users.length, registrations);
-      updateAnalytics(registrations);
-    }
-  }, [revenueStatusFilter]);
+
 
   const fetchData = async () => {
     try {
@@ -177,10 +170,9 @@ export default function AdminDashboard() {
   };
 
   const updateStats = (registrationsCount: number, usersCount: number, registrationsData: Registration[]) => {
-    // Calculate revenue based on status filter - only approved registrations count towards revenue
+    // Calculate revenue - only approved registrations count towards revenue
     const approvedRegistrations = registrationsData.filter(reg => reg.status === 'Approved');
-    const totalRevenue = revenueStatusFilter === 'Approved' ? 
-      approvedRegistrations.reduce((sum, reg) => sum + reg.paymentAmount, 0) : 0;
+    const totalRevenue = approvedRegistrations.reduce((sum, reg) => sum + reg.paymentAmount, 0);
     const pendingCount = registrationsData.filter(reg => reg.status === 'Pending').length;
 
     setStats([
@@ -302,12 +294,11 @@ export default function AdminDashboard() {
   };
 
   const getRevenueBreakdown = (data: Registration[]): Array<{ membership: string; revenue: number }> => {
-    // Only calculate revenue for approved registrations when status filter is 'Approved'
-    const filteredData = revenueStatusFilter === 'Approved' ? 
-      data.filter(reg => reg.status === 'Approved') : [];
+    // Only calculate revenue for approved registrations
+    const approvedData = data.filter(reg => reg.status === 'Approved');
     
     const revenueByMembership: { [key: string]: number } = {};
-    filteredData.forEach(reg => {
+    approvedData.forEach(reg => {
       revenueByMembership[reg.membership] = (revenueByMembership[reg.membership] || 0) + reg.paymentAmount;
     });
     
@@ -510,7 +501,10 @@ export default function AdminDashboard() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(registrationForm),
+        body: JSON.stringify({
+          ...registrationForm,
+          confirmedBy: registrationForm.status === 'Approved' ? userName : null
+        }),
       });
 
       if (response.ok) {
@@ -872,81 +866,29 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-medium text-gray-900">Revenue Breakdown</h3>
-                <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">Status:</label>
-                  <select
-                    value={revenueStatusFilter}
-                    onChange={(e) => {
-                      setRevenueStatusFilter(e.target.value);
-                      // Refresh analytics with new filter
-                      updateStats(registrations.length, users.length, registrations);
-                      updateAnalytics(registrations);
-                    }}
-                    className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value="">Select Status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                  </select>
+                <div className="text-sm text-gray-600">
+                  Only approved registrations contribute to revenue
                 </div>
               </div>
               <div className="space-y-4">
-                {/* Status Message */}
-                {!revenueStatusFilter && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                    <p className="text-sm text-yellow-800">
-                      Please select a status to view revenue breakdown. Revenue is only calculated for approved registrations.
-                    </p>
-                  </div>
-                )}
-                
-                {revenueStatusFilter === 'Pending' && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                    <p className="text-sm text-blue-800">
-                      Pending registrations do not contribute to revenue until approved.
-                    </p>
-                  </div>
-                )}
-                
                 {/* Total Revenue */}
                 <div className="border-b border-gray-200 pb-3">
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-semibold text-gray-900">Total Revenue:</span>
                     <span className="text-lg font-bold text-green-600">
-                      ₱{revenueStatusFilter === 'Approved' ? 
-                        registrations.filter(reg => reg.status === 'Approved').reduce((sum, reg) => sum + reg.paymentAmount, 0).toLocaleString() : 
-                        '0'}
+                      ₱{registrations.filter(reg => reg.status === 'Approved').reduce((sum, reg) => sum + reg.paymentAmount, 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
                 
                 {/* Revenue by Membership Type */}
                 <div className="space-y-3">
-                  {revenueStatusFilter === 'Approved' ? (
-                    revenueBreakdown.length > 0 ? (
-                      revenueBreakdown.map((item, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">{item.membership}:</span>
-                          <span className="text-sm font-medium text-gray-900">₱{item.revenue.toLocaleString()}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-4">
-                        <p className="text-gray-500 text-sm">No approved registrations found</p>
-                      </div>
-                    )
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Member (₱500):</span>
-                        <span className="text-sm font-medium text-gray-900">₱0</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Alumni (₱1,000):</span>
-                        <span className="text-sm font-medium text-gray-900">₱0</span>
-                      </div>
+                  {revenueBreakdown.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">{item.membership}:</span>
+                      <span className="text-sm font-medium text-gray-900">₱{item.revenue.toLocaleString()}</span>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
             </div>
@@ -1122,67 +1064,85 @@ export default function AdminDashboard() {
 
       {/* Add User Modal */}
       {showAddUserModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Add New User</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Add New User</h3>
+                <button
+                  onClick={() => setShowAddUserModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               <form onSubmit={handleAddUser} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Name</label>
                   <input
                     type="text"
                     required
                     value={userForm.name}
                     onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                    placeholder="Enter full name"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Username</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Username</label>
                   <input
                     type="text"
                     required
                     value={userForm.username}
                     onChange={(e) => setUserForm(prev => ({ ...prev, username: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                    placeholder="Enter username"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Password</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Password</label>
                   <input
                     type="password"
                     required
                     minLength={8}
                     value={userForm.password}
                     onChange={(e) => setUserForm(prev => ({ ...prev, password: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                    placeholder="Minimum 8 characters"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Role</label>
                   <select
                     value={userForm.role}
                     onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                   >
                     <option value="Member">Member</option>
                     <option value="Administrator">Administrator</option>
                   </select>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => setShowAddUserModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 hover:shadow-md"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isAddingUser}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors disabled:opacity-50"
+                    className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all duration-200 disabled:opacity-50 hover:shadow-md disabled:cursor-not-allowed"
                   >
-                    {isAddingUser ? 'Adding...' : 'Add User'}
+                    {isAddingUser ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Adding...</span>
+                      </div>
+                    ) : 'Add User'}
                   </button>
                 </div>
               </form>
@@ -1193,52 +1153,69 @@ export default function AdminDashboard() {
 
       {/* Edit User Modal */}
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Edit User</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Edit User</h3>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingUser(null);
+                    setUserForm({ name: '', username: '', password: '', role: 'Member' });
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               <form onSubmit={handleSaveUserEdit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Name</label>
                   <input
                     type="text"
                     required
                     value={userForm.name}
                     onChange={(e) => setUserForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                    placeholder="Enter full name"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Username</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Username</label>
                   <input
                     type="text"
                     required
                     value={userForm.username}
                     onChange={(e) => setUserForm(prev => ({ ...prev, username: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                    placeholder="Enter username"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Password (leave blank to keep current)</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Password</label>
                   <input
                     type="password"
                     value={userForm.password}
                     onChange={(e) => setUserForm(prev => ({ ...prev, password: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                    placeholder="Leave blank to keep current password"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                <div className="space-y-1">
+                  <label className="block text-sm font-semibold text-gray-700">Role</label>
                   <select
                     value={userForm.role}
                     onChange={(e) => setUserForm(prev => ({ ...prev, role: e.target.value }))}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                   >
                     <option value="Member">Member</option>
                     <option value="Administrator">Administrator</option>
                   </select>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => {
@@ -1246,13 +1223,13 @@ export default function AdminDashboard() {
                       setEditingUser(null);
                       setUserForm({ name: '', username: '', password: '', role: 'Member' });
                     }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 hover:shadow-md"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors"
+                    className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all duration-200 hover:shadow-md"
                   >
                     Save Changes
                   </button>
@@ -1265,28 +1242,50 @@ export default function AdminDashboard() {
 
       {/* Delete User Modal */}
       {showDeleteModal && deletingUser && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Delete User</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Are you sure you want to delete user &quot;{deletingUser.name}&quot;? This action cannot be undone.
-              </p>
-              <div className="flex justify-end space-x-3">
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Delete User</h3>
+                </div>
                 <button
                   onClick={() => {
                     setShowDeleteModal(false);
                     setDeletingUser(null);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="mb-6">
+                <p className="text-gray-600 leading-relaxed">
+                  Are you sure you want to delete user <span className="font-semibold text-gray-900">"{deletingUser.name}"</span>? This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeletingUser(null);
+                  }}
+                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 hover:shadow-md"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmDeleteUser}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:shadow-md"
                 >
-                  Delete
+                  Delete User
                 </button>
               </div>
             </div>
@@ -1296,63 +1295,94 @@ export default function AdminDashboard() {
 
       {/* View Registration Modal */}
       {showViewRegistrationModal && selectedRegistration && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">View Registration Details</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative mx-auto border-0 w-full max-w-5xl shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Registration Details</h3>
+                </div>
                 <button
                   onClick={() => {
                     setShowViewRegistrationModal(false);
                     setSelectedRegistration(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
+            </div>
+            <div className="p-6">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Personal Information</h4>
-                  <div className="space-y-2">
-                    <div><span className="font-medium">Name:</span> {selectedRegistration.firstName} {selectedRegistration.middleName} {selectedRegistration.lastName}</div>
-                    <div><span className="font-medium">Gender:</span> {selectedRegistration.gender}</div>
-                    <div><span className="font-medium">Date of Birth:</span> {selectedRegistration.dateOfBirth}</div>
-                    <div><span className="font-medium">Place of Birth:</span> {selectedRegistration.placeOfBirth}</div>
-                    <div><span className="font-medium">Date of Survive:</span> {selectedRegistration.dateOfSurvive}</div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Personal Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Name:</span> <span className="text-gray-900">{selectedRegistration.firstName} {selectedRegistration.middleName} {selectedRegistration.lastName}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Gender:</span> <span className="text-gray-900">{selectedRegistration.gender}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Date of Birth:</span> <span className="text-gray-900">{selectedRegistration.dateOfBirth}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Place of Birth:</span> <span className="text-gray-900">{selectedRegistration.placeOfBirth}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Date of Survive:</span> <span className="text-gray-900">{selectedRegistration.dateOfSurvive}</span></div>
                   </div>
                 </div>
                 
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Contact Information</h4>
-                  <div className="space-y-2">
-                    <div><span className="font-medium">Email:</span> {selectedRegistration.emailAddress}</div>
-                    <div><span className="font-medium">Contact Number:</span> {selectedRegistration.contactNumber}</div>
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Contact Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Email:</span> <span className="text-gray-900">{selectedRegistration.emailAddress}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Contact Number:</span> <span className="text-gray-900">{selectedRegistration.contactNumber}</span></div>
                   </div>
                 </div>
                 
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Address Information</h4>
-                  <div className="space-y-2">
-                    <div><span className="font-medium">Address:</span> {selectedRegistration.address}</div>
-                    <div><span className="font-medium">Region:</span> {selectedRegistration.region}</div>
-                    <div><span className="font-medium">Province:</span> {selectedRegistration.province}</div>
-                    <div><span className="font-medium">City:</span> {selectedRegistration.city}</div>
-                    <div><span className="font-medium">Barangay:</span> {selectedRegistration.barangay}</div>
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Address Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Address:</span> <span className="text-gray-900">{selectedRegistration.address}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Region:</span> <span className="text-gray-900">{selectedRegistration.region}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Province:</span> <span className="text-gray-900">{selectedRegistration.province}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">City:</span> <span className="text-gray-900">{selectedRegistration.city}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Barangay:</span> <span className="text-gray-900">{selectedRegistration.barangay}</span></div>
                   </div>
                 </div>
                 
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Registration Details</h4>
-                  <div className="space-y-2">
-                    <div><span className="font-medium">Chapter:</span> {selectedRegistration.chapter}</div>
-                    <div><span className="font-medium">Membership:</span> {selectedRegistration.membership}</div>
-                    <div><span className="font-medium">Payment Amount:</span> ₱{selectedRegistration.paymentAmount.toLocaleString()}</div>
-                    <div><span className="font-medium">Status:</span> 
-                      <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg className="w-5 h-5 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Registration Details
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Chapter:</span> <span className="text-gray-900">{selectedRegistration.chapter}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Membership:</span> <span className="text-gray-900">{selectedRegistration.membership}</span></div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Payment Amount:</span> <span className="text-green-600 font-semibold">₱{selectedRegistration.paymentAmount.toLocaleString()}</span></div>
+                    <div className="flex justify-between items-center"><span className="font-medium text-gray-600">Status:</span> 
+                      <span className={`px-3 py-1 text-sm font-medium rounded-full ${
                         selectedRegistration.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                         selectedRegistration.status === 'Approved' ? 'bg-green-100 text-green-800' :
                         'bg-red-100 text-red-800'
@@ -1360,7 +1390,10 @@ export default function AdminDashboard() {
                         {selectedRegistration.status}
                       </span>
                     </div>
-                    <div><span className="font-medium">Registration Date:</span> {new Date(selectedRegistration.createdAt).toLocaleDateString()}</div>
+                    <div className="flex justify-between"><span className="font-medium text-gray-600">Registration Date:</span> <span className="text-gray-900">{new Date(selectedRegistration.createdAt).toLocaleDateString()}</span></div>
+                    {selectedRegistration.status === 'Approved' && selectedRegistration.confirmedBy && (
+                      <div className="flex justify-between"><span className="font-medium text-gray-600">Approved by:</span> <span className="text-green-600 font-semibold">{selectedRegistration.confirmedBy}</span></div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1371,187 +1404,208 @@ export default function AdminDashboard() {
 
       {/* Edit Registration Modal */}
       {showEditRegistrationModal && selectedRegistration && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Edit Registration</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative mx-auto border-0 w-full max-w-6xl shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900">Edit Registration</h3>
+                </div>
                 <button
                   onClick={() => {
                     setShowEditRegistrationModal(false);
                     setSelectedRegistration(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-full hover:bg-gray-100"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
+            </div>
+            <div className="p-6">
               
-              <form onSubmit={handleSaveRegistrationEdit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">First Name</label>
+              <form onSubmit={handleSaveRegistrationEdit} className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">First Name</label>
                     <input
                       type="text"
                       required
                       value={registrationForm.firstName}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, firstName: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter first name"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Middle Name</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Middle Name</label>
                     <input
                       type="text"
                       value={registrationForm.middleName}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, middleName: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter middle name (optional)"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Last Name</label>
                     <input
                       type="text"
                       required
                       value={registrationForm.lastName}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, lastName: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter last name"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Gender</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Gender</label>
                     <select
                       required
                       value={registrationForm.gender}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, gender: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                     >
                       <option value="">Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Date of Birth</label>
                     <input
                       type="date"
                       required
                       value={registrationForm.dateOfBirth}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Place of Birth</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Place of Birth</label>
                     <input
                       type="text"
                       required
                       value={registrationForm.placeOfBirth}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, placeOfBirth: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter place of birth"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Address</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Address</label>
                     <input
                       type="text"
                       required
                       value={registrationForm.address}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, address: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter complete address"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Date of Survive</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Date of Survive</label>
                     <input
                       type="date"
                       required
                       value={registrationForm.dateOfSurvive}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, dateOfSurvive: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Chapter</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Chapter</label>
                     <input
                       type="text"
                       value={registrationForm.chapter}
                       readOnly
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-700 cursor-not-allowed"
+                      className="block w-full border border-gray-200 rounded-lg px-4 py-3 text-sm bg-gray-50 text-gray-600 cursor-not-allowed"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Membership</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Membership</label>
                     <input
                       type="text"
                       value={registrationForm.membership}
                       readOnly
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-700 cursor-not-allowed"
+                      className="block w-full border border-gray-200 rounded-lg px-4 py-3 text-sm bg-gray-50 text-gray-600 cursor-not-allowed"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Payment Amount</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Payment Amount</label>
                     <input
                       type="text"
                       value={`₱${registrationForm.paymentAmount.toLocaleString()}`}
                       readOnly
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 text-gray-700 cursor-not-allowed"
+                      className="block w-full border border-gray-200 rounded-lg px-4 py-3 text-sm bg-gray-50 text-gray-600 cursor-not-allowed"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Status</label>
                     <select
                       required
                       value={registrationForm.status}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, status: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                     >
                       <option value="Pending">Pending</option>
                       <option value="Approved">Approved</option>
                       <option value="Rejected">Rejected</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Email Address</label>
                     <input
                       type="email"
                       required
                       value={registrationForm.emailAddress}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, emailAddress: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter email address"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-semibold text-gray-700">Contact Number</label>
                     <input
                       type="tel"
                       required
                       value={registrationForm.contactNumber}
                       onChange={(e) => setRegistrationForm(prev => ({ ...prev, contactNumber: e.target.value }))}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
+                      placeholder="Enter contact number"
                     />
                   </div>
                 </div>
                 
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => {
                       setShowEditRegistrationModal(false);
                       setSelectedRegistration(null);
                     }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 hover:shadow-md"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isUpdatingRegistration}
-                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors disabled:opacity-50"
+                    className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all duration-200 disabled:opacity-50 hover:shadow-md disabled:cursor-not-allowed"
                   >
-                    {isUpdatingRegistration ? 'Updating...' : 'Update Registration'}
+                    {isUpdatingRegistration ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Updating...</span>
+                      </div>
+                    ) : 'Update Registration'}
                   </button>
                 </div>
               </form>
@@ -1562,29 +1616,56 @@ export default function AdminDashboard() {
 
       {/* Delete Registration Modal */}
       {showDeleteRegistrationModal && selectedRegistration && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Delete Registration</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Are you sure you want to delete the registration for &quot;{selectedRegistration.firstName} {selectedRegistration.lastName}&quot;? This action cannot be undone.
-              </p>
-              <div className="flex justify-end space-x-3">
+        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+          <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">Delete Registration</h3>
+                </div>
                 <button
                   onClick={() => {
                     setShowDeleteRegistrationModal(false);
                     setSelectedRegistration(null);
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="mb-6">
+                <p className="text-gray-600 leading-relaxed">
+                  Are you sure you want to delete the registration for <span className="font-semibold text-gray-900">"{selectedRegistration.firstName} {selectedRegistration.lastName}"</span>? This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowDeleteRegistrationModal(false);
+                    setSelectedRegistration(null);
+                  }}
+                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 hover:shadow-md"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmDeleteRegistration}
                   disabled={isDeletingRegistration}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50"
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 disabled:opacity-50 hover:shadow-md disabled:cursor-not-allowed"
                 >
-                  {isDeletingRegistration ? 'Deleting...' : 'Delete'}
+                  {isDeletingRegistration ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Deleting...</span>
+                    </div>
+                  ) : 'Delete Registration'}
                 </button>
               </div>
             </div>
