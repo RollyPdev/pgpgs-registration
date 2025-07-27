@@ -1,19 +1,9 @@
-import { MetadataRoute } from 'next'
-
 export function GET(): Response {
-  const robots: MetadataRoute.Robots = {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/admin/', '/api/'],
-    },
-    sitemap: 'https://pgpgs.rollyparedes.net/sitemap.xml',
-  }
-
-  const robotsText = `User-agent: ${robots.rules.userAgent}
-Allow: ${robots.rules.allow}
-Disallow: ${robots.rules.disallow.join('\nDisallow: ')}
-Sitemap: ${robots.sitemap}`
+  const robotsText = `User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Sitemap: https://pgpgs.rollyparedes.net/sitemap.xml`
 
   return new Response(robotsText, {
     headers: {
