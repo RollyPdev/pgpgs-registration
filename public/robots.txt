@@ -20,7 +20,4 @@ Allow: /$
 Allow: /terms
 Allow: /favicon.ico
 Allow: /PGPGS Logo.png
-Allow: /gold.png
-
-# Block all other paths
-Disallow: / 
+Allow: /gold.png 
