@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Registration {
   id: number;
@@ -627,6 +627,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1943,6 +1944,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      </div>
       
       {/* Footer */}
       <footer className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-800 text-white py-8 mt-16 border-t border-slate-700 shadow-inner">

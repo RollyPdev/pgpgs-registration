@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { PDFWrapper } from "../components/PDFWrapper";
+
 import Head from "next/head";
 
 interface AddressData {
@@ -916,71 +916,173 @@ export default function RegistrationPage() {
         </div>
       </footer>
       
-      {/* Success Modal */}
+      {/* Enhanced Success Modal */}
       {showSuccess && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8 text-center border-b border-slate-200">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+        <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-y-auto transform animate-slideUp border border-gray-100">
+            {/* Celebration Header */}
+            <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-8 text-center border-b border-green-100 rounded-t-3xl overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-4 left-4 w-8 h-8 bg-green-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+                <div className="absolute top-8 right-8 w-6 h-6 bg-emerald-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute bottom-6 left-8 w-4 h-4 bg-teal-400 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+                <div className="absolute bottom-4 right-6 w-5 h-5 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '1.5s'}}></div>
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 mb-2">Registration Successful!</h3>
-              <p className="text-slate-600">
-                Your registration has been completed successfully.
-              </p>
+              
+              {/* Success Icon with Animation */}
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg animate-pulse">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                
+                {/* Celebration Text */}
+                <div className="space-y-3">
+                  <h3 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+                    🎉 Registration Successful! 🎉
+                  </h3>
+                  <p className="text-lg text-gray-700 font-medium">
+                    Welcome to the Pi Gamma Phi Gamma Sigma family!
+                  </p>
+                  <p className="text-gray-600">
+                    Your registration for the 50th Golden Anniversary has been completed successfully.
+                  </p>
+                </div>
+                
+                {/* Registration ID Badge */}
+                <div className="mt-6 inline-block">
+                  <div className="bg-white/80 backdrop-blur-sm border border-green-200 rounded-full px-6 py-2 shadow-md">
+                    <span className="text-sm font-semibold text-green-700">
+                      Registration ID: REG-{Date.now().toString().slice(-8)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
             
-            {/* Registration Preview */}
-            <div className="p-6">
-              <h4 className="text-lg font-semibold text-slate-800 mb-4">Registration Preview</h4>
-              <div className="bg-slate-50 rounded-lg p-4 space-y-3 text-sm">
-                <div className="grid grid-cols-2 gap-4">
-                  <div><span className="font-medium text-slate-600">Name:</span> {formData.firstName} {formData.middleName} {formData.lastName}</div>
-                  <div><span className="font-medium text-slate-600">Chapter:</span> {chapter}</div>
-                  <div><span className="font-medium text-slate-600">Membership:</span> {membership}</div>
-                  <div><span className="font-medium text-slate-600">Fee:</span> ₱{paymentAmount}.00</div>
-                  <div><span className="font-medium text-slate-600">Contact:</span> {formData.contactNumber}</div>
-                  <div><span className="font-medium text-slate-600">Email:</span> {formData.emailAddress}</div>
+            {/* Registration Details Card */}
+            <div className="p-8">
+              <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-100 shadow-inner">
+                <div className="flex items-center mb-6">
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-800">Registration Summary</h4>
                 </div>
-                <div className="pt-2 border-t border-slate-200">
-                  <div><span className="font-medium text-slate-600">Address:</span> {formData.address}, {barangays.find(b => b.code === selectedBarangay)?.name || selectedBarangay}, {cities.find(c => c.code === selectedCity)?.name || selectedCity}, {provinces.find(p => p.code === selectedProvince)?.name || selectedProvince}, {regions.find(r => r.code === selectedRegion)?.name || selectedRegion}</div>
+                
+                {/* Personal Information */}
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <h5 className="font-semibold text-gray-700 mb-3 flex items-center">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                      Personal Information
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Full Name:</span>
+                        <span className="text-gray-900 font-semibold">{formData.firstName} {formData.middleName} {formData.lastName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Contact:</span>
+                        <span className="text-gray-900">{formData.contactNumber}</span>
+                      </div>
+                      <div className="flex justify-between md:col-span-2">
+                        <span className="font-medium text-gray-600">Email:</span>
+                        <span className="text-gray-900">{formData.emailAddress}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Membership Information */}
+                  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <h5 className="font-semibold text-gray-700 mb-3 flex items-center">
+                      <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                      Membership Details
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Chapter:</span>
+                        <span className="text-gray-900 font-semibold">{chapter}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Type:</span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          membership === 'Alumni' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          {membership}
+                        </span>
+                      </div>
+                      <div className="flex justify-between md:col-span-2">
+                        <span className="font-medium text-gray-600">Registration Fee:</span>
+                        <span className="text-green-600 font-bold text-lg">₱{paymentAmount.toLocaleString()}.00</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Address Information */}
+                  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                    <h5 className="font-semibold text-gray-700 mb-3 flex items-center">
+                      <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                      Address Information
+                    </h5>
+                    <div className="text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-600">Complete Address:</span>
+                      </div>
+                      <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-900">
+                          {formData.address}, {barangays.find(b => b.code === selectedBarangay)?.name || selectedBarangay}, {cities.find(c => c.code === selectedCity)?.name || selectedCity}, {provinces.find(p => p.code === selectedProvince)?.name || selectedProvince}, {regions.find(r => r.code === selectedRegion)?.name || selectedRegion}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div className="p-6 pt-0 space-y-3">
-              <div className="w-full">
-                <PDFWrapper
-                  data={{
-                    chapter,
-                    firstName: formData.firstName,
-                    middleName: formData.middleName,
-                    lastName: formData.lastName,
-                    dateOfBirth: formData.dateOfBirth,
-                    placeOfBirth: formData.placeOfBirth,
-                    address: formData.address,
-                    region: regions.find(r => r.code === selectedRegion)?.name || '',
-                    province: provinces.find(p => p.code === selectedProvince)?.name || '',
-                    cityMunicipality: cities.find(c => c.code === selectedCity)?.name || '',
-                    barangay: barangays.find(b => b.code === selectedBarangay)?.name || '',
-                    dateOfSurvive: formData.dateOfSurvive,
-                    membershipType: membership,
-                    paymentAmount,
-                    contactNumber: formData.contactNumber,
-                    emailAddress: formData.emailAddress,
-                    registrationDate: new Date().toISOString().split('T')[0]
-                  }}
-                />
+            {/* Action Buttons */}
+            <div className="p-8 pt-0 space-y-4">
+              {/* Important Notice */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                <div className="flex items-start">
+                  <div className="w-5 h-5 text-amber-600 mr-3 mt-0.5">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h6 className="font-semibold text-amber-800 mb-1">Important Reminder</h6>
+                    <p className="text-sm text-amber-700">
+                      Please save this registration information. You may need to present proof of registration during the event.
+                    </p>
+                  </div>
+                </div>
               </div>
+              
+              {/* Close Button */}
               <button
                 type="button"
                 onClick={handleModalClose}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
               >
-                Close
+                <span className="flex items-center justify-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Complete Registration
+                </span>
               </button>
+              
+              {/* Additional Info */}
+              <div className="text-center pt-2">
+                <p className="text-xs text-gray-500">
+                  Thank you for joining the 50th Golden Anniversary celebration! 🎊
+                </p>
+              </div>
             </div>
           </div>
         </div>
