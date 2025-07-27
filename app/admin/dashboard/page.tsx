@@ -50,6 +50,8 @@ export default function AdminDashboard() {
   const [showWarningMessage, setShowWarningMessage] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
   const [isAddingUser, setIsAddingUser] = useState(false);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -342,6 +344,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!editingUser) return;
 
+    setIsEditingUser(true);
     try {
       const response = await fetch(`/api/users/${editingUser.id}`, {
         method: 'PUT',
@@ -369,6 +372,8 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error updating user:', error);
+    } finally {
+      setIsEditingUser(false);
     }
   };
 
@@ -386,6 +391,7 @@ export default function AdminDashboard() {
       return;
     }
 
+    setIsDeletingUser(true);
     try {
       const response = await fetch(`/api/users/${deletingUser.id}`, {
         method: 'DELETE',
@@ -405,6 +411,8 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Error deleting user:', error);
+    } finally {
+      setIsDeletingUser(false);
     }
   };
 
@@ -1192,9 +1200,15 @@ export default function AdminDashboard() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all duration-200 hover:shadow-md"
+                    disabled={isEditingUser}
+                    className="px-6 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-all duration-200 disabled:opacity-50 hover:shadow-md disabled:cursor-not-allowed"
                   >
-                    Save Changes
+                    {isEditingUser ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Saving...</span>
+                      </div>
+                    ) : 'Save Changes'}
                   </button>
                 </div>
               </form>
@@ -1246,9 +1260,15 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   onClick={handleConfirmDeleteUser}
-                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 hover:shadow-md"
+                  disabled={isDeletingUser}
+                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 disabled:opacity-50 hover:shadow-md disabled:cursor-not-allowed"
                 >
-                  Delete User
+                  {isDeletingUser ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Deleting...</span>
+                    </div>
+                  ) : 'Delete User'}
                 </button>
               </div>
             </div>

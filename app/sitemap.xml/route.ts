@@ -1,4 +1,4 @@
-export function GET(): Response {
+export async function GET() {
   const baseUrl = 'https://pgpgs.rollyparedes.net'
   
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -24,8 +24,10 @@ export function GET(): Response {
 </urlset>`
 
   return new Response(sitemap, {
+    status: 200,
     headers: {
       'Content-Type': 'application/xml',
+      'Cache-Control': 'public, max-age=3600, s-maxage=3600'
     },
   })
 }
