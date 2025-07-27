@@ -5,14 +5,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: 'https://pgpgs.rollyparedes.net',
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly',
       priority: 1,
-    },
-    {
-      url: 'https://pgpgs.rollyparedes.net/admin',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
     },
     {
       url: 'https://pgpgs.rollyparedes.net/terms',
