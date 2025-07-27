@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { PDFWrapper } from "../components/PDFWrapper";
+import Head from "next/head";
 
 interface AddressData {
   code: string;
@@ -367,8 +368,45 @@ export default function RegistrationPage() {
     );
   }
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": "PGPGS 50th Golden Anniversary Registration",
+    "description": "Official registration for Pi Gamma Phi Gamma Sigma 50th Golden Anniversary celebration",
+    "startDate": "2025-09-27",
+    "location": {
+      "@type": "Place",
+      "name": "Roxas City, Capiz",
+      "address": "Roxas City, Capiz, Philippines"
+    },
+    "organizer": {
+      "@type": "Organization",
+      "name": "Pi Gamma Phi Gamma Sigma",
+      "url": "https://pgpgs.rollyparedes.net"
+    },
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Member Registration",
+        "price": "500",
+        "priceCurrency": "PHP"
+      },
+      {
+        "@type": "Offer",
+        "name": "Alumni Registration",
+        "price": "1000",
+        "priceCurrency": "PHP"
+      }
+    ]
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm fixed top-0 left-0 right-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -947,6 +985,7 @@ export default function RegistrationPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
