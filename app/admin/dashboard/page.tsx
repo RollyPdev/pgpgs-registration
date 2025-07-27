@@ -60,6 +60,7 @@ export default function AdminDashboard() {
   const [successMessage, setSuccessMessage] = useState('');
   const [userRole, setUserRole] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Registration modal states
   const [showViewRegistrationModal, setShowViewRegistrationModal] = useState(false);
@@ -417,12 +418,17 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
-    window.location.href = '/admin';
+    setIsLoggingOut(true);
+    
+    // Add a small delay for better UX
+    setTimeout(() => {
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userId');
+      window.location.href = '/admin';
+    }, 1500);
   };
 
   // Registration action handlers
@@ -565,6 +571,52 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Logout Loading Screen */}
+      {isLoggingOut && (
+        <div className="fixed inset-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 z-[9999] flex items-center justify-center">
+          <div className="text-center">
+            {/* Animated Logo/Icon */}
+            <div className="relative mb-8">
+              <div className="w-24 h-24 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30">
+                <svg className="w-12 h-12 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              {/* Rotating Ring */}
+              <div className="absolute inset-0 w-24 h-24 mx-auto border-4 border-transparent border-t-white/50 rounded-full animate-spin"></div>
+              {/* Outer Glow Ring */}
+              <div className="absolute inset-0 w-32 h-32 mx-auto -ml-4 -mt-4 border-2 border-transparent border-t-white/20 rounded-full animate-spin" style={{animationDuration: '3s'}}></div>
+            </div>
+            
+            {/* Loading Text */}
+            <div className="space-y-4">
+              <h2 className="text-3xl font-bold text-white mb-2">Signing Out</h2>
+              <p className="text-white/80 text-lg">Please wait while we securely log you out...</p>
+              
+              {/* Loading Dots */}
+              <div className="flex justify-center space-x-2 mt-6">
+                <div className="w-3 h-3 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                <div className="w-3 h-3 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                <div className="w-3 h-3 bg-white/60 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="w-64 mx-auto mt-8">
+                <div className="h-1 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-white/60 to-white/80 rounded-full animate-pulse" style={{width: '100%', animation: 'progress 1.5s ease-in-out'}}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Background Animation */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full animate-pulse" style={{animationDuration: '4s'}}></div>
+            <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-white/5 rounded-full animate-pulse" style={{animationDuration: '6s'}}></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/3 rounded-full animate-pulse" style={{animationDuration: '8s'}}></div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -577,9 +629,15 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              disabled={isLoggingOut}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-              Logout
+              {isLoggingOut ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing Out...</span>
+                </div>
+              ) : 'Logout'}
             </button>
           </div>
         </div>
