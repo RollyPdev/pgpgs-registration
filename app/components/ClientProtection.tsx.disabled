@@ -1,0 +1,12 @@
+'use client';
+
+import { useEffect } from 'react';
+import { initializeClientProtection } from '../../lib/clientProtection';
+
+export default function ClientProtection() {
+  useEffect(() => {
+    initializeClientProtection();
+  }, []);
+
+  return null; // This component doesn't render anything
+} 

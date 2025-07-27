@@ -1,0 +1,180 @@
+// Client-side protection against developer tools and source code viewing
+// DISABLED - Security measures removed to prevent errors
+
+export function initializeClientProtection() {
+  if (typeof window === 'undefined') return;
+
+  // SECURITY MEASURES DISABLED - All protection removed to prevent errors
+  
+  // Disable right-click context menu - DISABLED
+  // document.addEventListener('contextmenu', (e) => {
+  //   e.preventDefault();
+  //   return false;
+  // });
+
+  // Disable keyboard shortcuts for developer tools - DISABLED
+  // document.addEventListener('keydown', (e) => {
+  //   // Disable F12
+  //   if (e.key === 'F12') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+
+  //   // Disable Ctrl+Shift+I (Developer Tools)
+  //   if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+
+  //   // Disable Ctrl+Shift+J (Console)
+  //   if (e.ctrlKey && e.shiftKey && e.key === 'J') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+
+  //   // Disable Ctrl+U (View Source)
+  //   if (e.ctrlKey && e.key === 'u') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+
+  //   // Disable Ctrl+Shift+C (Inspect Element)
+  //   if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+
+  //   // Disable Ctrl+S (Save Page)
+  //   if (e.ctrlKey && e.key === 's') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+
+  //   // Disable Ctrl+P (Print)
+  //   if (e.ctrlKey && e.key === 'p') {
+  //     e.preventDefault();
+  //     return false;
+  //   }
+  // });
+
+  // Disable text selection - DISABLED
+  // document.addEventListener('selectstart', (e) => {
+  //   e.preventDefault();
+  //   return false;
+  // });
+
+  // Disable drag and drop - DISABLED
+  // document.addEventListener('dragstart', (e) => {
+  //   e.preventDefault();
+  //   return false;
+  // });
+
+  // Detect developer tools - DISABLED
+  // let devtools: { open: boolean; orientation: string | null } = { open: false, orientation: null };
+  
+  // setInterval(() => {
+  //   const threshold = 160;
+  //   const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+  //   const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    
+  //   if (widthThreshold || heightThreshold) {
+  //     if (!devtools.open) {
+  //       devtools.open = true;
+  //       devtools.orientation = widthThreshold ? 'vertical' : 'horizontal';
+  //       handleDevToolsOpen();
+  //     }
+  //   } else {
+  //     devtools.open = false;
+  //     devtools.orientation = null;
+  //   }
+  // }, 500);
+
+  // Additional developer tools detection - DISABLED
+  // const devtoolsCheck = () => {
+  //   const start = performance.now();
+  //   debugger;
+  //   const end = performance.now();
+    
+  //   if (end - start > 100) {
+  //     handleDevToolsOpen();
+  //   }
+  // };
+
+  // setInterval(devtoolsCheck, 1000);
+
+  // Handle developer tools opening - DISABLED
+  // function handleDevToolsOpen() {
+  //   // Clear the page content
+  //   document.body.innerHTML = `
+  //     <div style="
+  //       position: fixed;
+  //       top: 0;
+  //       left: 0;
+  //       width: 100vw;
+  //       height: 100vh;
+  //       background: #000;
+  //       color: #fff;
+  //       display: flex;
+  //       align-items: center;
+  //       justify-content: center;
+  //       font-family: monospace;
+  //       font-size: 24px;
+  //       z-index: 999999;
+  //     ">
+  //       <div style="text-align: center;">
+  //         <h1>⚠️ ACCESS DENIED ⚠️</h1>
+  //         <p>Developer tools are not allowed on this application.</p>
+  //         <p>Please close the developer tools to continue.</p>
+  //       </div>
+  //     </div>
+  //   `;
+    
+  //   // Prevent any further interaction
+  //   document.addEventListener('click', (e) => e.preventDefault(), true);
+  //   document.addEventListener('keydown', (e) => e.preventDefault(), true);
+  // }
+
+  // Disable console methods - DISABLED
+  // const disableConsole = () => {
+  //   const methods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 'dir', 'dirxml', 'group', 'groupCollapsed', 'groupEnd', 'time', 'timeEnd', 'timeLog', 'profile', 'profileEnd', 'count', 'countReset', 'clear', 'table', 'assert'];
+    
+  //   methods.forEach(method => {
+  //     (console as any)[method] = () => {};
+  //   });
+  // };
+
+  // disableConsole();
+
+  // Disable eval and Function constructor - DISABLED
+  // (window as any).eval = () => {
+  //   throw new Error('eval is disabled for security reasons');
+  // };
+
+  // Override Function constructor - DISABLED
+  // const originalFunction = (window as any).Function;
+  // (window as any).Function = function(...args: any[]) {
+  //   throw new Error('Function constructor is disabled for security reasons');
+  // };
+
+  // Disable setTimeout and setInterval with function strings - DISABLED
+  // const originalSetTimeout = window.setTimeout;
+  // (window as any).setTimeout = function(handler: any, timeout?: number, ...args: any[]) {
+  //   if (typeof handler === 'string') {
+  //     throw new Error('setTimeout with string is disabled for security reasons');
+  //   }
+  //   return originalSetTimeout(handler, timeout, ...args);
+  // };
+
+  // const originalSetInterval = window.setInterval;
+  // (window as any).setInterval = function(handler: any, timeout?: number, ...args: any[]) {
+  //   if (typeof handler === 'string') {
+  //     throw new Error('setInterval with string is disabled for security reasons');
+  //   }
+  //   return originalSetInterval(handler, timeout, ...args);
+  // };
+}
+
+// Initialize protection when the script loads - DISABLED
+// if (typeof window !== 'undefined') {
+//   initializeClientProtection();
+// } 
