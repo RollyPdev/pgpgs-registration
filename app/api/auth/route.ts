@@ -5,14 +5,6 @@ import { generateToken } from '../../../lib/jwt';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if database is available
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json(
-        { error: 'Database configuration missing' },
-        { status: 500 }
-      );
-    }
-
     const { username, password } = await request.json();
     
     // Validate input
