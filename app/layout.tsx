@@ -50,9 +50,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'OjsTwVz62W214j5UDVtZ-8BBY2JzVv1xgGxTgxyG1mw',
-  },
+
 };
 
 export default function RootLayout({
@@ -63,6 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="google-site-verification" content="OjsTwVz62W214j5UDVtZ-8BBY2JzVv1xgGxTgxyG1mw" />
         {/* Google Tag Manager */}
         <script dangerouslySetInnerHTML={{
           __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
