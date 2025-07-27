@@ -165,7 +165,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateStats, updateAnalytics]);
 
   const updateStats = (registrationsCount: number, usersCount: number, registrationsData: Registration[]) => {
     // Calculate revenue - only approved registrations count towards revenue
