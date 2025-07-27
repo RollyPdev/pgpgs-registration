@@ -943,19 +943,38 @@ export default function AdminDashboard() {
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">Chapter Breakdown</h3>
                 </div>
-                <div className="space-y-3">
-                  {chapterBreakdown.length > 0 ? (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {loading ? (
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-4 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : chapterBreakdown.length > 0 ? (
                     chapterBreakdown.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 truncate max-w-[150px]" title={item.chapter}>
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <span className="text-sm text-gray-700 font-medium flex-1 pr-3" title={item.chapter}>
                           {item.chapter}
                         </span>
-                        <span className="text-sm font-medium text-gray-900">{item.count}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                          </div>
+                          <span className="text-sm font-bold text-blue-600 min-w-[24px] text-center">{item.count}</span>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm">No chapter data available</p>
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 text-sm">No chapter data</p>
                     </div>
                   )}
                 </div>
@@ -971,16 +990,35 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-bold text-gray-900">Gender Distribution</h3>
                 </div>
                 <div className="space-y-3">
-                  {genderBreakdown.length > 0 ? (
+                  {loading ? (
+                    <div className="space-y-3">
+                      {[...Array(2)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                          <div className="h-4 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : genderBreakdown.length > 0 ? (
                     genderBreakdown.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{item.gender}</span>
-                        <span className="text-sm font-medium text-gray-900">{item.count}</span>
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <span className="text-sm text-gray-700 font-medium">{item.gender}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center animate-pulse">
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                          </div>
+                          <span className="text-sm font-bold text-pink-600 min-w-[24px] text-center">{item.count}</span>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm">No gender data available</p>
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 text-sm">No gender data</p>
                     </div>
                   )}
                 </div>
@@ -996,16 +1034,35 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-bold text-gray-900">Membership Types</h3>
                 </div>
                 <div className="space-y-3">
-                  {membershipBreakdown.length > 0 ? (
+                  {loading ? (
+                    <div className="space-y-3">
+                      {[...Array(2)].map((_, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse">
+                          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                          <div className="h-4 bg-gray-200 rounded w-8"></div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : membershipBreakdown.length > 0 ? (
                     membershipBreakdown.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">{item.membership}</span>
-                        <span className="text-sm font-medium text-gray-900">{item.count}</span>
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <span className="text-sm text-gray-700 font-medium">{item.membership}</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                          </div>
+                          <span className="text-sm font-bold text-orange-600 min-w-[24px] text-center">{item.count}</span>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm">No membership data available</p>
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 text-sm">No membership data</p>
                     </div>
                   )}
                 </div>
