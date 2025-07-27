@@ -1354,8 +1354,8 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                     <div className="flex justify-between"><span className="font-medium text-gray-600">Registration Date:</span> <span className="text-gray-900">{new Date(selectedRegistration.createdAt).toLocaleDateString()}</span></div>
-                    {selectedRegistration.status === 'Approved' && selectedRegistration.confirmedBy && (
-                      <div className="flex justify-between"><span className="font-medium text-gray-600">Approved by:</span> <span className="text-green-600 font-semibold">{selectedRegistration.confirmedBy}</span></div>
+                    {selectedRegistration.confirmedBy && (
+                      <div className="flex justify-between"><span className="font-medium text-gray-600">Confirmed By:</span> <span className="text-green-600 font-semibold">{selectedRegistration.confirmedBy}</span></div>
                     )}
                   </div>
                 </div>
