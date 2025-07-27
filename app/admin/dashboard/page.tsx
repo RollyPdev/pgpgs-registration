@@ -739,7 +739,7 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => {
+              {stats.filter(stat => userRole === 'Administrator' || stat.label !== 'Total Users').map((stat, index) => {
                 const getIcon = (label: string) => {
                   switch (label) {
                     case 'Total Registrations':
