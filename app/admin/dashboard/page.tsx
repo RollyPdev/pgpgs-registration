@@ -1027,7 +1027,7 @@ export default function AdminDashboard() {
 
       {/* Add User Modal */}
       {showAddUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1116,7 +1116,7 @@ export default function AdminDashboard() {
 
       {/* Edit User Modal */}
       {showEditModal && editingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1205,7 +1205,7 @@ export default function AdminDashboard() {
 
       {/* Delete User Modal */}
       {showDeleteModal && deletingUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1258,7 +1258,7 @@ export default function AdminDashboard() {
 
       {/* View Registration Modal */}
       {showViewRegistrationModal && selectedRegistration && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="relative mx-auto border-0 w-full max-w-5xl shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
               <div className="flex justify-between items-center">
@@ -1367,7 +1367,7 @@ export default function AdminDashboard() {
 
       {/* Edit Registration Modal */}
       {showEditRegistrationModal && selectedRegistration && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="relative mx-auto border-0 w-full max-w-6xl shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100 max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-xl">
               <div className="flex justify-between items-center">
@@ -1579,7 +1579,7 @@ export default function AdminDashboard() {
 
       {/* Delete Registration Modal */}
       {showDeleteRegistrationModal && selectedRegistration && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
           <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
