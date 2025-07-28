@@ -45,3 +45,17 @@ model Registration {
 
   @@map("registrations")
 }
+
+model LoginLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  username  String
+  name      String
+  role      String
+  ipAddress String?
+  userAgent String?
+  loginAt   DateTime @default(now())
+  success   Boolean  @default(true)
+
+  @@map("login_logs")
+}

@@ -1,13 +1,14 @@
-export function GET(): Response {
-  const robotsText = `User-agent: *
+export async function GET() {
+  return new Response(`User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /api/
-Sitemap: https://pgpgs.rollyparedes.net/sitemap.xml`
+Allow: /terms
 
-  return new Response(robotsText, {
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://pgpgs.rollyparedes.net/sitemap.xml`, {
     headers: {
       'Content-Type': 'text/plain',
     },
-  })
+  });
 }
