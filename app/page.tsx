@@ -133,6 +133,9 @@ export default function RegistrationPage() {
       }
     } catch (error) {
       console.error('Error fetching registration count:', error);
+      // Set default values on error
+      setApprovedCount(0);
+      setPendingCount(0);
     }
   };
   
