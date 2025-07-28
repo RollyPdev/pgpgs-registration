@@ -181,7 +181,7 @@ export default function AdminDashboard() {
       const [registrationsRes, usersRes, logsRes] = await Promise.all([
         fetch('/api/registrations'),
         fetch('/api/users'),
-        userRole === 'Administrator' ? fetch('/api/login-logs') : Promise.resolve({ ok: false })
+        userRole === 'Administrator' ? fetch('/api/login-logs') : Promise.resolve(new Response('{}', { status: 404 }))
       ]);
 
       let registrationsData: Registration[] = [];
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
         setUsers(usersData);
       }
 
-      if (logsRes.ok) {
+      if (logsRes.ok && 'json' in logsRes) {
         const logsData = await logsRes.json();
         setLoginLogs(logsData);
       }
