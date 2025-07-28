@@ -62,6 +62,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="OjsTwVz62W214j5UDVtZ-8BBY2JzVv1xgGxTgxyG1mw" />
+        <meta name="facebook-domain-verification" content="wmthwkwyl2exl0x6xogxgj3ztntiov" />
         <meta property="fb:app_id" content="1234567890123456" />
         <meta property="og:url" content="https://pgpgs.rollyparedes.net/" />
         <meta property="og:type" content="website" />
