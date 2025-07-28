@@ -8,6 +8,7 @@ export async function GET() {
       take: 100
     });
 
+    console.log('Fetched login logs:', logs.length);
     return NextResponse.json(logs);
   } catch (error) {
     console.error('Error fetching login logs:', error);

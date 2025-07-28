@@ -118,11 +118,19 @@ export default function AdminDashboard() {
 
   // Stats state
   const [stats, setStats] = useState<Stat[]>([
-    { label: 'Total Registrations', value: 0, change: '+12%', changeType: 'positive' },
-    { label: 'Total Users', value: 0, change: '+5%', changeType: 'positive' },
-    { label: 'Pending Approvals', value: 0, change: '-2%', changeType: 'negative' },
-    { label: 'Revenue Generated', value: '₱0', change: '+8%', changeType: 'positive' }
+    { label: 'Total Registrations', value: 0, change: '0%', changeType: 'neutral' },
+    { label: 'Total Users', value: 0, change: '0%', changeType: 'neutral' },
+    { label: 'Pending Approvals', value: 0, change: '0%', changeType: 'neutral' },
+    { label: 'Revenue Generated', value: '₱0', change: '0%', changeType: 'neutral' }
   ]);
+
+  // Previous values for percentage calculation
+  const [previousStats, setPreviousStats] = useState({
+    registrations: 0,
+    users: 0,
+    pending: 0,
+    revenue: 0
+  });
 
   // Registration trends data
   const [registrationTrends, setRegistrationTrends] = useState<Array<{ date: string; count: number }>>([]);
@@ -181,7 +189,7 @@ export default function AdminDashboard() {
       const [registrationsRes, usersRes, logsRes] = await Promise.all([
         fetch('/api/registrations'),
         fetch('/api/users'),
-        userRole === 'Administrator' ? fetch('/api/login-logs') : Promise.resolve(new Response('{}', { status: 404 }))
+        fetch('/api/login-logs')
       ]);
 
       let registrationsData: Registration[] = [];
@@ -197,9 +205,18 @@ export default function AdminDashboard() {
         setUsers(usersData);
       }
 
-      if (logsRes.ok && 'json' in logsRes) {
-        const logsData = await logsRes.json();
-        setLoginLogs(logsData);
+      if (logsRes && logsRes.ok) {
+        try {
+          const logsData = await logsRes.json();
+          console.log('Login logs fetched:', logsData);
+          setLoginLogs(Array.isArray(logsData) ? logsData : []);
+        } catch (error) {
+          console.error('Error parsing login logs:', error);
+          setLoginLogs([]);
+        }
+      } else {
+        console.log('Login logs fetch failed:', logsRes?.status);
+        setLoginLogs([]);
       }
 
       // Update stats with the actual data
@@ -219,12 +236,38 @@ export default function AdminDashboard() {
     const totalRevenue = approvedRegistrations.reduce((sum, reg) => sum + reg.paymentAmount, 0);
     const pendingCount = registrationsData.filter(reg => reg.status === 'Pending').length;
 
+    // Calculate percentage changes
+    const calculateChange = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? '+100%' : '0%';
+      const change = ((current - previous) / previous) * 100;
+      return change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
+    };
+
+    const getChangeType = (current: number, previous: number): 'positive' | 'negative' | 'neutral' => {
+      if (current > previous) return 'positive';
+      if (current < previous) return 'negative';
+      return 'neutral';
+    };
+
+    const regChange = calculateChange(registrationsCount, previousStats.registrations);
+    const userChange = calculateChange(usersCount, previousStats.users);
+    const pendingChange = calculateChange(pendingCount, previousStats.pending);
+    const revenueChange = calculateChange(totalRevenue, previousStats.revenue);
+
     setStats([
-      { label: 'Total Registrations', value: registrationsCount, change: '+12%', changeType: 'positive' },
-      { label: 'Total Users', value: usersCount, change: '+5%', changeType: 'positive' },
-      { label: 'Pending Approvals', value: pendingCount, change: '-2%', changeType: 'negative' },
-      { label: 'Revenue Generated', value: `₱${totalRevenue.toLocaleString()}`, change: '+8%', changeType: 'positive' }
+      { label: 'Total Registrations', value: registrationsCount, change: regChange, changeType: getChangeType(registrationsCount, previousStats.registrations) },
+      { label: 'Total Users', value: usersCount, change: userChange, changeType: getChangeType(usersCount, previousStats.users) },
+      { label: 'Pending Approvals', value: pendingCount, change: pendingChange, changeType: getChangeType(pendingCount, previousStats.pending) },
+      { label: 'Revenue Generated', value: `₱${totalRevenue.toLocaleString()}`, change: revenueChange, changeType: getChangeType(totalRevenue, previousStats.revenue) }
     ]);
+
+    // Update previous stats for next calculation
+    setPreviousStats({
+      registrations: registrationsCount,
+      users: usersCount,
+      pending: pendingCount,
+      revenue: totalRevenue
+    });
   };
 
   const updateAnalytics = (data: Registration[]) => {
@@ -567,6 +610,52 @@ export default function AdminDashboard() {
     } finally {
       setIsUpdatingRegistration(false);
     }
+  };
+
+  const downloadCSV = () => {
+    const headers = [
+      'ID', 'First Name', 'Middle Name', 'Last Name', 'Gender', 'Date of Birth',
+      'Place of Birth', 'Address', 'Region', 'Province', 'City/Municipality',
+      'Barangay', 'Date of Survive', 'Chapter', 'Membership', 'Payment Amount',
+      'Contact Number', 'Email Address', 'Status', 'Created At'
+    ];
+    
+    const csvData = registrations.map(reg => [
+      reg.id,
+      reg.firstName,
+      reg.middleName || '',
+      reg.lastName,
+      reg.gender,
+      reg.dateOfBirth,
+      reg.placeOfBirth,
+      reg.address,
+      reg.region,
+      reg.province,
+      reg.city,
+      reg.barangay,
+      reg.dateOfSurvive,
+      reg.chapter,
+      reg.membership,
+      reg.paymentAmount,
+      reg.contactNumber,
+      reg.emailAddress,
+      reg.status,
+      new Date(reg.createdAt).toLocaleDateString()
+    ]);
+    
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pgpgs-registrations-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleConfirmDeleteRegistration = async () => {
@@ -1230,6 +1319,15 @@ export default function AdminDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
+                  <button
+                    onClick={downloadCSV}
+                    className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download CSV
+                  </button>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-indigo-600">{registrations.length}</div>
                     <div className="text-sm text-gray-600">Total Registrations</div>
@@ -1441,6 +1539,7 @@ export default function AdminDashboard() {
                   <div className="text-right">
                     <div className="text-2xl font-bold text-purple-600">{loginLogs.length}</div>
                     <div className="text-sm text-gray-600">Total Logins</div>
+                    <div className="text-xs text-gray-400">Debug: {JSON.stringify(loginLogs.length > 0 ? 'Has data' : 'No data')}</div>
                   </div>
                 </div>
               </div>
