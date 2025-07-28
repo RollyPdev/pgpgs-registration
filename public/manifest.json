@@ -1,0 +1,27 @@
+{
+  "name": "PGPGS Registration - 50th Golden Anniversary",
+  "short_name": "PGPGS Registration",
+  "description": "Official registration for Pi Gamma Phi Gamma Sigma 50th Golden Anniversary celebration",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/PGPGS Logo.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/PGPGS Logo.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+
+    {
+      "src": "/PGPGS Logo.png",
+      "sizes": "500x500",
+      "type": "image/png"
+    }
+  ]
+}
