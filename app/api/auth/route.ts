@@ -15,6 +15,11 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    // Get client IP and user agent
+    const forwarded = request.headers.get('x-forwarded-for');
+    const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') || 'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    
     // Find user by username
     const user = await prisma.user.findUnique({
       where: {
@@ -23,6 +28,23 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
+      // Log failed login attempt
+      try {
+        await prisma.loginLog.create({
+          data: {
+            userId: 0,
+            username: username,
+            name: 'Unknown User',
+            role: 'Unknown',
+            ipAddress: ip,
+            userAgent: userAgent,
+            success: false
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to log failed login:', logError);
+      }
+      
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -33,12 +55,46 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
     if (!isPasswordValid) {
+      // Log failed login attempt
+      try {
+        await prisma.loginLog.create({
+          data: {
+            userId: user.id,
+            username: user.username,
+            name: user.name,
+            role: user.role,
+            ipAddress: ip,
+            userAgent: userAgent,
+            success: false
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to log failed login:', logError);
+      }
+      
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
       );
     }
 
+    // Log successful login
+    try {
+      await prisma.loginLog.create({
+        data: {
+          userId: user.id,
+          username: user.username,
+          name: user.name,
+          role: user.role,
+          ipAddress: ip,
+          userAgent: userAgent,
+          success: true
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to log successful login:', logError);
+    }
+    
     // Generate JWT token
     const token = generateToken({
       userId: user.id,
