@@ -62,11 +62,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="OjsTwVz62W214j5UDVtZ-8BBY2JzVv1xgGxTgxyG1mw" />
+        <meta property="fb:app_id" content="1234567890123456" />
         <meta property="og:url" content="https://pgpgs.rollyparedes.net/" />
         <meta property="og:type" content="website" />
         <meta property="og:title" content="PGPGS Registration - 50th Golden Anniversary" />
         <meta property="og:description" content="Official registration for Pi Gamma Phi Gamma Sigma 50th Golden Anniversary celebration. Join us in commemorating five decades of excellence and brotherhood." />
         <meta property="og:image" content="https://ogcdn.net/6064b869-74ed-4eb9-b76c-0b701ffe7e6b/v5/pgpgs.rollyparedes.net/PGPGS%20Registration%20-%2050th%20Golden%20Anniversary/https%3A%2F%2Fpgpgs.rollyparedes.net%2FPGPGS%20Logo.png/rgba(224%2C%20196%2C%2094%2C%201)/og.png" />
+        <meta property="og:image:alt" content="PGPGS Registration - 50th Golden Anniversary" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta property="twitter:domain" content="pgpgs.rollyparedes.net" />
         <meta property="twitter:url" content="https://pgpgs.rollyparedes.net/" />
