@@ -88,8 +88,9 @@ export default function RootLayout({
         <meta name="author" content="PGPGS Organization" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="apple-mobile-web-app-title" content="PGPGS Registration" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico?v=2" />
         <link rel="icon" type="image/png" sizes="32x32" href="/PGPGS Logo.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/PGPGS Logo.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/PGPGS Logo.png" />
