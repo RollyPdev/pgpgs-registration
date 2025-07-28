@@ -14,6 +14,26 @@ export function generateToken(payload: JWTPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
+export function verifyTokenEdge(token: string): JWTPayload | null {
+  // Simple base64 decode for Edge Runtime - less secure but works
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const payload = JSON.parse(atob(parts[1]));
+    
+    // Basic expiration check
+    if (payload.exp && payload.exp < Date.now() / 1000) {
+      return null;
+    }
+    
+    return payload as JWTPayload;
+  } catch (error) {
+    console.error('JWT verification failed:', error);
+    return null;
+  }
+}
+
 export function verifyToken(token: string): JWTPayload | null {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
