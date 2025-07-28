@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     siteName: 'PGPGS Registration',
     images: [
       {
-        url: '/PGPGS Logo.png',
+        url: 'https://pgpgs.rollyparedes.net/PGPGS Logo.png',
         width: 800,
         height: 600,
         alt: 'PGPGS Logo - Pi Gamma Phi Gamma Sigma',
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "PGPGS Registration - 50th Golden Anniversary",
     description: "Official registration for Pi Gamma Phi Gamma Sigma 50th Golden Anniversary celebration.",
-    images: ['/PGPGS Logo.png'],
+    images: ['https://pgpgs.rollyparedes.net/PGPGS Logo.png'],
   },
   robots: {
     index: true,
@@ -62,6 +62,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="OjsTwVz62W214j5UDVtZ-8BBY2JzVv1xgGxTgxyG1mw" />
+        <meta property="og:title" content="PGPGS Registration - 50th Golden Anniversary" />
+        <meta property="og:description" content="Official registration for Pi Gamma Phi Gamma Sigma 50th Golden Anniversary celebration. Join us in commemorating five decades of excellence and brotherhood." />
+        <meta property="og:image" content="https://pgpgs.rollyparedes.net/PGPGS Logo.png" />
+        <meta property="og:url" content="https://pgpgs.rollyparedes.net" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="PGPGS Registration" />
         {/* Google Tag Manager */}
         <script dangerouslySetInnerHTML={{
           __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
