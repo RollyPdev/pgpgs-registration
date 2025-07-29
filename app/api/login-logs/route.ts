@@ -3,12 +3,16 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
+    console.log('Login logs API called');
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
+    
     const logs = await prisma.loginLog.findMany({
       orderBy: { loginAt: 'desc' },
       take: 100
     });
 
     console.log('Fetched login logs:', logs.length);
+    console.log('Sample log:', logs[0] || 'No logs found');
     return NextResponse.json(logs);
   } catch (error) {
     console.error('Error fetching login logs:', error);

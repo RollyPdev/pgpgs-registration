@@ -41,8 +41,6 @@ export default function RegistrationPage() {
   const [selectedBarangay, setSelectedBarangay] = useState("");
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [approvedCount, setApprovedCount] = useState(0);
-  const [pendingCount, setPendingCount] = useState(0);
   
   // Form data state
   const [formData, setFormData] = useState({
@@ -111,33 +109,10 @@ export default function RegistrationPage() {
       .then((data: AddressData[]) => setRegions(data))
       .catch(err => console.error('Error loading regions:', err));
     
-    // Fetch actual registration count from database
-    fetchRegistrationCount();
-    
     return () => clearTimeout(timer);
   }, []);
 
-  // Function to fetch actual registration count and status breakdown
-  const fetchRegistrationCount = async () => {
-    try {
-      const response = await fetch('/api/registrations');
-      if (response.ok) {
-        const registrations = await response.json();
-        
-        // Calculate status breakdown
-        const approved = registrations.filter((reg: { status: string }) => reg.status === 'Approved').length;
-        const pending = registrations.filter((reg: { status: string }) => reg.status === 'Pending').length;
-        
-        setApprovedCount(approved);
-        setPendingCount(pending);
-      }
-    } catch (error) {
-      console.error('Error fetching registration count:', error);
-      // Set default values on error
-      setApprovedCount(0);
-      setPendingCount(0);
-    }
-  };
+
   
   // Countdown timer effect
   useEffect(() => {
@@ -306,8 +281,6 @@ export default function RegistrationPage() {
 
       // Show success message
       setShowSuccess(true);
-      // Refresh registration count from database
-      fetchRegistrationCount();
 
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -449,34 +422,7 @@ export default function RegistrationPage() {
                 </div>
               </div>
               
-              {/* Registration Status */}
-              <div className="flex items-center gap-4">
-                {/* Approved Registrants */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="text-xs font-medium text-green-800">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm">{approvedCount.toLocaleString()}</span>
-                      <span className="text-xs opacity-75">Approved</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Pending Registrants */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-amber-100 to-yellow-100 rounded-lg border border-amber-200">
-                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="text-xs font-medium text-amber-800">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-sm">{pendingCount.toLocaleString()}</span>
-                      <span className="text-xs opacity-75">Pending</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+
               
               {/* Active Status */}
               <div className="flex items-center gap-2 px-3 py-1 bg-amber-100 rounded-full">

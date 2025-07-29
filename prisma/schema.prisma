@@ -59,3 +59,5 @@ model LoginLog {
 
   @@map("login_logs")
 }
+
+

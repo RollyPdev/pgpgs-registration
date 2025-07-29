@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
+
 interface Registration {
   id: number;
   firstName: string;
@@ -68,9 +69,9 @@ export default function AdminDashboard() {
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [userRole, setUserRole] = useState<string>('');
@@ -156,8 +157,8 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    // Redirect non-administrators from 'users' tab
-    if (activeTab === 'users' && userRole !== 'Administrator') {
+    // Redirect non-administrators and non-presidents from 'users' tab
+    if (activeTab === 'users' && userRole !== 'Administrator' && userRole !== 'President') {
       setActiveTab('overview');
     }
   }, [activeTab, userRole]);
@@ -209,6 +210,7 @@ export default function AdminDashboard() {
         try {
           const logsData = await logsRes.json();
           console.log('Login logs fetched:', logsData);
+          console.log('Login logs length:', Array.isArray(logsData) ? logsData.length : 'Not an array');
           setLoginLogs(Array.isArray(logsData) ? logsData : []);
         } catch (error) {
           console.error('Error parsing login logs:', error);
@@ -422,9 +424,40 @@ export default function AdminDashboard() {
     setShowEditModal(true);
   };
 
-  const handleDeleteUser = (user: User) => {
-    setDeletingUser(user);
-    setShowDeleteModal(true);
+  const handleDeleteUser = async (user: User) => {
+    // Prevent deleting the last administrator
+    const adminUsers = users.filter(u => u.role === 'Administrator');
+    if (adminUsers.length === 1 && user.role === 'Administrator') {
+      setWarningMessage('Cannot delete the last administrator');
+      setShowWarningMessage(true);
+      setTimeout(() => setShowWarningMessage(false), 5000);
+      return;
+    }
+
+    setIsDeletingUser(true);
+    try {
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setUsers(prev => prev.filter(u => u.id !== user.id));
+        
+        // Show success modal
+        setSuccessMessage(`User "${user.name}" deleted successfully!`);
+        setShowSuccessModal(true);
+        setTimeout(() => setShowSuccessModal(false), 3000);
+        
+        fetchData(); // Refresh data
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setWarningMessage('Failed to delete user');
+      setShowWarningMessage(true);
+      setTimeout(() => setShowWarningMessage(false), 5000);
+    } finally {
+      setIsDeletingUser(false);
+    }
   };
 
   const handleSaveUserEdit = async (e: React.FormEvent) => {
@@ -464,44 +497,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleConfirmDeleteUser = async () => {
-    if (!deletingUser) return;
 
-    // Prevent deleting the last administrator
-    const adminUsers = users.filter(user => user.role === 'Administrator');
-    if (adminUsers.length === 1 && deletingUser.role === 'Administrator') {
-      setWarningMessage('Cannot delete the last administrator');
-      setShowWarningMessage(true);
-      setTimeout(() => setShowWarningMessage(false), 5000);
-      setShowDeleteModal(false);
-      setDeletingUser(null);
-      return;
-    }
-
-    setIsDeletingUser(true);
-    try {
-      const response = await fetch(`/api/users/${deletingUser.id}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setUsers(prev => prev.filter(user => user.id !== deletingUser.id));
-        setShowDeleteModal(false);
-        setDeletingUser(null);
-        
-        // Show success modal
-        setSuccessMessage(`User "${deletingUser.name}" deleted successfully!`);
-        setShowSuccessModal(true);
-        setTimeout(() => setShowSuccessModal(false), 3000);
-        
-        fetchData(); // Refresh data
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    } finally {
-      setIsDeletingUser(false);
-    }
-  };
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -826,7 +822,7 @@ export default function AdminDashboard() {
             >
               Registrations
             </button>
-            {userRole === 'Administrator' && (
+            {(userRole === 'Administrator' || userRole === 'President') && (
               <button
                 onClick={() => setActiveTab('users')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -838,7 +834,7 @@ export default function AdminDashboard() {
                 Users
               </button>
             )}
-            {userRole === 'Administrator' && (
+            {(userRole === 'Administrator' || userRole === 'President') && (
               <button
                 onClick={() => setActiveTab('logs')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
@@ -882,7 +878,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {refreshing ? (
                 // Skeleton loading for stats
-                [...Array(userRole === 'Administrator' ? 4 : 3)].map((_, index) => (
+                [...Array(userRole === 'Administrator' || userRole === 'President' ? 4 : 3)].map((_, index) => (
                   <div key={index} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 animate-pulse">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -899,7 +895,7 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                stats.filter(stat => userRole === 'Administrator' || stat.label !== 'Total Users').map((stat, index) => {
+                stats.filter(stat => userRole === 'Administrator' || userRole === 'President' || stat.label !== 'Total Users').map((stat, index) => {
                 const getIcon = (label: string) => {
                   switch (label) {
                     case 'Total Registrations':
@@ -1428,7 +1424,7 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                       ))
-                    ) : (
+                    ) : registrations.length > 0 ? (
                       registrations.map((registration, index) => (
                       <tr key={registration.id} className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1489,28 +1485,48 @@ export default function AdminDashboard() {
                               </svg>
                               View
                             </button>
-                            <button
-                              onClick={() => handleEditRegistration(registration)}
-                              className="inline-flex items-center px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs font-medium rounded-lg transition-colors"
-                            >
-                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteRegistration(registration)}
-                              className="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition-colors"
-                            >
-                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              Delete
-                            </button>
+                            {userRole !== 'President' && (
+                              <button
+                                onClick={() => handleEditRegistration(registration)}
+                                className="inline-flex items-center px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs font-medium rounded-lg transition-colors"
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit
+                              </button>
+                            )}
+                            {userRole !== 'President' && (
+                              <button
+                                onClick={() => handleDeleteRegistration(registration)}
+                                className="inline-flex items-center px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded-lg transition-colors"
+                              >
+                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
                       ))
+                    ) : (
+                      // Empty state
+                      <tr>
+                        <td colSpan={7} className="px-6 py-12">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Registrations Found</h3>
+                            <p className="text-gray-500">No registration submissions have been made yet.</p>
+                            <p className="text-gray-400 text-sm mt-1">New registrations will appear here once submitted.</p>
+                          </div>
+                        </td>
+                      </tr>
                     )}
                   </tbody>
                 </table>
@@ -1519,7 +1535,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'logs' && userRole === 'Administrator' && (
+        {activeTab === 'logs' && (userRole === 'Administrator' || userRole === 'President') && (
           <div className="space-y-6">
             {/* Header Section */}
             <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-8 border border-purple-100">
@@ -1629,7 +1645,8 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                              log.role === 'Administrator' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                              log.role === 'Administrator' ? 'bg-purple-100 text-purple-800' : 
+                              log.role === 'President' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
                             }`}>
                               {log.role}
                             </span>
@@ -1683,16 +1700,18 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {activeTab === 'users' && userRole === 'Administrator' && (
+        {activeTab === 'users' && (userRole === 'Administrator' || userRole === 'President') && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-medium text-gray-900">All Users</h2>
-              <button
-                onClick={() => setShowAddUserModal(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                Add User
-              </button>
+              {userRole === 'Administrator' && (
+                <button
+                  onClick={() => setShowAddUserModal(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Add User
+                </button>
+              )}
             </div>
 
             <div className="bg-white rounded-lg shadow">
@@ -1728,7 +1747,8 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full ${
-                            user.role === 'Administrator' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                            user.role === 'Administrator' ? 'bg-purple-100 text-purple-800' : 
+                            user.role === 'President' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
                           }`}>
                             {user.role}
                           </span>
@@ -1737,18 +1757,25 @@ export default function AdminDashboard() {
                           {new Date(user.createdAt).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                          <button
-                            onClick={() => handleEditUser(user)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
+                          {userRole === 'Administrator' ? (
+                            <>
+                              <button
+                                onClick={() => handleEditUser(user)}
+                                className="text-indigo-600 hover:text-indigo-900"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(user)}
+                                disabled={isDeletingUser}
+                                className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                {isDeletingUser ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-gray-400 text-sm">View Only</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -1819,6 +1846,7 @@ export default function AdminDashboard() {
                     className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                   >
                     <option value="Member">Member</option>
+                    <option value="President">President</option>
                     <option value="Administrator">Administrator</option>
                   </select>
                 </div>
@@ -1910,6 +1938,7 @@ export default function AdminDashboard() {
                     className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 hover:border-gray-400"
                   >
                     <option value="Member">Member</option>
+                    <option value="President">President</option>
                     <option value="Administrator">Administrator</option>
                   </select>
                 </div>
@@ -1944,64 +1973,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Delete User Modal */}
-      {showDeleteModal && deletingUser && (
-        <div className="fixed inset-0 bg-white/20 backdrop-blur-md overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative mx-auto border-0 w-full max-w-md shadow-2xl rounded-xl bg-white transform transition-all duration-300 scale-100">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900">Delete User</h3>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setDeletingUser(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="mb-6">
-                <p className="text-gray-600 leading-relaxed">
-                  Are you sure you want to delete user <span className="font-semibold text-gray-900">{deletingUser.name}</span>? This action cannot be undone.
-                </p>
-              </div>
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setDeletingUser(null);
-                  }}
-                  className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 hover:shadow-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDeleteUser}
-                  disabled={isDeletingUser}
-                  className="px-6 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 disabled:opacity-50 hover:shadow-md disabled:cursor-not-allowed"
-                >
-                  {isDeletingUser ? (
-                    <div className="flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Deleting...</span>
-                    </div>
-                  ) : 'Delete User'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* View Registration Modal */}
       {showViewRegistrationModal && selectedRegistration && (
@@ -2411,6 +2383,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </footer>
+
     </div>
   );
 }
