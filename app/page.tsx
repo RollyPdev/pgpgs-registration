@@ -30,6 +30,10 @@ export default function RegistrationPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   
+  // Error alert state
+  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  
   // Address state
   const [regions, setRegions] = useState<AddressData[]>([]);
   const [provinces, setProvinces] = useState<AddressData[]>([]);
@@ -96,6 +100,20 @@ export default function RegistrationPage() {
     emailAddress: '',
   });
 
+  // Function to show error alert
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    setShowErrorAlert(true);
+    // Auto-hide after 8 seconds
+    setTimeout(() => {
+      setShowErrorAlert(false);
+    }, 8000);
+  };
+
+  // Function to close error alert
+  const closeErrorAlert = () => {
+    setShowErrorAlert(false);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -222,7 +240,7 @@ export default function RegistrationPage() {
     e.preventDefault();
     
     if (!terms) {
-      alert('Please accept the terms and conditions to continue.');
+      showError('Please accept the terms and conditions to continue.');
       return;
     }
 
@@ -265,14 +283,14 @@ export default function RegistrationPage() {
       if (response.status === 409) {
         const errorData = await response.json();
         console.log('409 error data:', errorData);
-        alert(`⚠️ Registration Error: ${errorData.error}`);
+        showError(`⚠️ Registration Error: ${errorData.error}`);
         return;
       }
 
       if (!response.ok) {
         const errorData = await response.json();
         console.log('Error data:', errorData);
-        alert(`⚠️ Registration Error: ${errorData.error || 'Failed to submit registration'}`);
+        showError(`⚠️ Registration Error: ${errorData.error || 'Failed to submit registration'}`);
         return;
       }
 
@@ -284,7 +302,7 @@ export default function RegistrationPage() {
 
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('There was an error submitting the form. Please try again.');
+      showError('There was an error submitting the form. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -1111,6 +1129,131 @@ export default function RegistrationPage() {
                 <p className="text-xs text-gray-500">
                   Thank you for joining the 50th Golden Anniversary celebration! 🎊
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Beautiful Animated Error Alert */}
+      {showErrorAlert && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-slideUp border border-red-100 overflow-hidden">
+            {/* Error Header with Red Background */}
+            <div className="relative bg-gradient-to-br from-red-50 via-red-100 to-red-200 p-6 text-center overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-20">
+                <div className="absolute top-4 left-4 w-8 h-8 bg-red-400 rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                <div className="absolute top-8 right-8 w-6 h-6 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute bottom-6 left-8 w-4 h-4 bg-red-600 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="absolute bottom-4 right-6 w-5 h-5 bg-red-400 rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+              </div>
+              
+              {/* Error Icon with Animation */}
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                
+                {/* Error Title */}
+                <h3 className="text-xl font-bold text-red-800 mb-2">
+                  ⚠️ Registration Error
+                </h3>
+              </div>
+            </div>
+            
+            {/* Error Content */}
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                  <p className="text-red-700 text-sm leading-relaxed font-medium">
+                    {errorMessage}
+                  </p>
+                </div>
+                
+                {/* Specific Error Type Detection */}
+                {errorMessage.includes("already exists") && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                    <div className="flex items-start">
+                      <div className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <h6 className="font-semibold text-amber-800 mb-1">Duplicate Registration Detected</h6>
+                        <p className="text-sm text-amber-700">
+                          It appears you have already registered with this information. Please check your details or contact support if you believe this is an error.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Common Solutions */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <h6 className="font-semibold text-blue-800 mb-2 flex items-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Suggested Solutions
+                  </h6>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li className="flex items-start">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Verify your contact number and email address
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Check if you&apos;ve already registered
+                    </li>
+                    <li className="flex items-start">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      Contact support if you need assistance
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={closeErrorAlert}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+                >
+                  <span className="flex items-center justify-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Close
+                  </span>
+                </button>
+                
+                <button
+                  onClick={() => {
+                    closeErrorAlert();
+                    // Scroll to top of form
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+                >
+                  <span className="flex items-center justify-center">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Try Again
+                  </span>
+                </button>
+              </div>
+              
+              {/* Auto-close indicator */}
+              <div className="mt-4 text-center">
+                <div className="w-full bg-gray-200 rounded-full h-1">
+                  <div className="bg-gradient-to-r from-red-400 to-red-600 h-1 rounded-full animate-[progress_8s_linear_forwards]"></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">This alert will close automatically in 8 seconds</p>
               </div>
             </div>
           </div>

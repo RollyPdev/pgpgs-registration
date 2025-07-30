@@ -235,3 +235,33 @@
 .animate-slideUp {
   animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* Error Alert Specific Animations */
+@keyframes progress-8s {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.animate-\[progress_8s_linear_forwards\] {
+  animation: progress-8s 8s linear forwards;
+}
+
+/* Bounce animation for error icon */
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -30px, 0);
+  }
+  70% {
+    transform: translate3d(0, -15px, 0);
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s ease-in-out;
+}
