@@ -90,6 +90,13 @@ export default function RegistrationPage() {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedBarangay, setSelectedBarangay] = useState("");
   const [loading, setLoading] = useState(true);
+  
+  // Loading states for dropdowns
+  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingBarangays, setLoadingBarangays] = useState(false);
+  const [loadingChapters, setLoadingChapters] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   
   // Form data state
@@ -153,10 +160,21 @@ export default function RegistrationPage() {
     }, 2500);
     
     // Load regions on component mount
+    setLoadingRegions(true);
     fetch('https://psgc.cloud/api/regions')
       .then(res => res.json())
-      .then((data: AddressData[]) => setRegions(data))
-      .catch(err => console.error('Error loading regions:', err));
+      .then((data: AddressData[]) => {
+        setRegions(data);
+        setLoadingRegions(false);
+      })
+      .catch(err => {
+        console.error('Error loading regions:', err);
+        setLoadingRegions(false);
+      });
+    
+    // Simulate loading for chapters (static data)
+    setLoadingChapters(true);
+    setTimeout(() => setLoadingChapters(false), 800);
     
     return () => clearTimeout(timer);
   }, []);
@@ -190,10 +208,17 @@ export default function RegistrationPage() {
   // Load provinces when region changes
   useEffect(() => {
     if (selectedRegion) {
+      setLoadingProvinces(true);
       fetch(`https://psgc.cloud/api/regions/${selectedRegion}/provinces`)
         .then(res => res.json())
-        .then((data: AddressData[]) => setProvinces(data))
-        .catch(err => console.error('Error loading provinces:', err));
+        .then((data: AddressData[]) => {
+          setProvinces(data);
+          setLoadingProvinces(false);
+        })
+        .catch(err => {
+          console.error('Error loading provinces:', err);
+          setLoadingProvinces(false);
+        });
       setSelectedProvince("");
       setCities([]);
       setBarangays([]);
@@ -203,10 +228,17 @@ export default function RegistrationPage() {
   // Load cities when province changes
   useEffect(() => {
     if (selectedProvince) {
+      setLoadingCities(true);
       fetch(`https://psgc.cloud/api/provinces/${selectedProvince}/cities-municipalities`)
         .then(res => res.json())
-        .then((data: AddressData[]) => setCities(data))
-        .catch(err => console.error('Error loading cities:', err));
+        .then((data: AddressData[]) => {
+          setCities(data);
+          setLoadingCities(false);
+        })
+        .catch(err => {
+          console.error('Error loading cities:', err);
+          setLoadingCities(false);
+        });
       setSelectedCity("");
       setBarangays([]);
     }
@@ -215,10 +247,17 @@ export default function RegistrationPage() {
   // Load barangays when city changes
   useEffect(() => {
     if (selectedCity) {
+      setLoadingBarangays(true);
       fetch(`https://psgc.cloud/api/cities-municipalities/${selectedCity}/barangays`)
         .then(res => res.json())
-        .then((data: AddressData[]) => setBarangays(data))
-        .catch(err => console.error('Error loading barangays:', err));
+        .then((data: AddressData[]) => {
+          setBarangays(data);
+          setLoadingBarangays(false);
+        })
+        .catch(err => {
+          console.error('Error loading barangays:', err);
+          setLoadingBarangays(false);
+        });
       setSelectedBarangay("");
     }
   }, [selectedCity]);
@@ -276,9 +315,6 @@ export default function RegistrationPage() {
     }
 
     setIsSubmitting(true);
-    
-    // Show processing notification
-    addNotification('info', '⏳ Processing Registration', 'Please wait while we process your registration...', 3000);
 
     try {
       const registrationData = {
@@ -533,18 +569,32 @@ export default function RegistrationPage() {
                     Chapter
                     <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    value={chapter}
-                    onChange={e => setChapter(e.target.value)}
-                    required
-                    onBlur={() => setTouched(prev => ({ ...prev, chapter: true }))}
-                  >
-                    <option value="">Select Your Chapter</option>
-                    {chapters.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      className={`w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                        loadingChapters ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                      value={chapter}
+                      onChange={e => setChapter(e.target.value)}
+                      required
+                      disabled={loadingChapters}
+                      onBlur={() => setTouched(prev => ({ ...prev, chapter: true }))}
+                    >
+                      <option value="">
+                        {loadingChapters ? 'Loading chapters...' : 'Select Your Chapter'}
+                      </option>
+                      {!loadingChapters && chapters.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    
+                    {/* Loading spinner for chapters */}
+                    {loadingChapters && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                        <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                  </div>
                   {touched.chapter && !chapter && (
                     <p className="text-red-500 text-xs mt-1">Please select your chapter.</p>
                   )}
@@ -668,17 +718,31 @@ export default function RegistrationPage() {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Region
                         <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                        value={selectedRegion}
-                        onChange={e => setSelectedRegion(e.target.value)}
-                        required
-                      >
-                        <option value="">Select Region</option>
-                        {regions.map(region => (
-                          <option key={region.code} value={region.code}>{region.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          className={`w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                            loadingRegions ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          value={selectedRegion}
+                          onChange={e => setSelectedRegion(e.target.value)}
+                          disabled={loadingRegions}
+                          required
+                        >
+                          <option value="">
+                            {loadingRegions ? 'Loading regions...' : 'Select Region'}
+                          </option>
+                          {!loadingRegions && regions.map(region => (
+                            <option key={region.code} value={region.code}>{region.name}</option>
+                          ))}
+                        </select>
+                        
+                        {/* Loading spinner for regions */}
+                        {loadingRegions && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
                       {touched.region && errors.region && (
                         <p className="text-red-500 text-xs mt-1">{errors.region}</p>
                       )}
@@ -687,18 +751,31 @@ export default function RegistrationPage() {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Province
                         <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                        value={selectedProvince}
-                        onChange={e => setSelectedProvince(e.target.value)}
-                        disabled={!selectedRegion}
-                        required
-                      >
-                        <option value="">Select Province</option>
-                        {provinces.map(province => (
-                          <option key={province.code} value={province.code}>{province.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          className={`w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                            loadingProvinces ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          value={selectedProvince}
+                          onChange={e => setSelectedProvince(e.target.value)}
+                          disabled={!selectedRegion || loadingProvinces}
+                          required
+                        >
+                          <option value="">
+                            {loadingProvinces ? 'Loading provinces...' : 'Select Province'}
+                          </option>
+                          {!loadingProvinces && provinces.map(province => (
+                            <option key={province.code} value={province.code}>{province.name}</option>
+                          ))}
+                        </select>
+                        
+                        {/* Loading spinner for provinces */}
+                        {loadingProvinces && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
                       {touched.province && errors.province && (
                         <p className="text-red-500 text-xs mt-1">{errors.province}</p>
                       )}
@@ -709,18 +786,31 @@ export default function RegistrationPage() {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">City/Municipality
                         <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                        value={selectedCity}
-                        onChange={e => setSelectedCity(e.target.value)}
-                        disabled={!selectedProvince}
-                        required
-                      >
-                        <option value="">Select City/Municipality</option>
-                        {cities.map(city => (
-                          <option key={city.code} value={city.code}>{city.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          className={`w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                            loadingCities ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          value={selectedCity}
+                          onChange={e => setSelectedCity(e.target.value)}
+                          disabled={!selectedProvince || loadingCities}
+                          required
+                        >
+                          <option value="">
+                            {loadingCities ? 'Loading cities...' : 'Select City/Municipality'}
+                          </option>
+                          {!loadingCities && cities.map(city => (
+                            <option key={city.code} value={city.code}>{city.name}</option>
+                          ))}
+                        </select>
+                        
+                        {/* Loading spinner for cities */}
+                        {loadingCities && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
                       {touched.cityMunicipality && errors.cityMunicipality && (
                         <p className="text-red-500 text-xs mt-1">{errors.cityMunicipality}</p>
                       )}
@@ -729,18 +819,31 @@ export default function RegistrationPage() {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Barangay
                         <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                        value={selectedBarangay}
-                        onChange={e => setSelectedBarangay(e.target.value)}
-                        disabled={!selectedCity}
-                        required
-                      >
-                        <option value="">Select Barangay</option>
-                        {barangays.map(barangay => (
-                          <option key={barangay.code} value={barangay.code}>{barangay.name}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <select
+                          className={`w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-700 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                            loadingBarangays ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          value={selectedBarangay}
+                          onChange={e => setSelectedBarangay(e.target.value)}
+                          disabled={!selectedCity || loadingBarangays}
+                          required
+                        >
+                          <option value="">
+                            {loadingBarangays ? 'Loading barangays...' : 'Select Barangay'}
+                          </option>
+                          {!loadingBarangays && barangays.map(barangay => (
+                            <option key={barangay.code} value={barangay.code}>{barangay.name}</option>
+                          ))}
+                        </select>
+                        
+                        {/* Loading spinner for barangays */}
+                        {loadingBarangays && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
                       {touched.barangay && errors.barangay && (
                         <p className="text-red-500 text-xs mt-1">{errors.barangay}</p>
                       )}
