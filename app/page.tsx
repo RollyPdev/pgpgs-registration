@@ -31,9 +31,55 @@ export default function RegistrationPage() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   
   // Error alert state
-  const [showErrorAlert, setShowErrorAlert] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+
   
+  // Beautiful Alert Notifications System
+  const [notifications, setNotifications] = useState<Array<{
+    id: string;
+    type: 'error' | 'warning' | 'success' | 'info';
+    title: string;
+    message: string;
+    duration?: number;
+    show: boolean;
+  }>>([]);
+
+  // Function to add a new notification
+  const addNotification = (type: 'error' | 'warning' | 'success' | 'info', title: string, message: string, duration: number = 6000) => {
+    const id = Date.now().toString();
+    const newNotification = {
+      id,
+      type,
+      title,
+      message,
+      duration,
+      show: true
+    };
+    
+    setNotifications(prev => [...prev, newNotification]);
+    
+    // Auto-remove notification after duration
+    setTimeout(() => {
+      removeNotification(id);
+    }, duration);
+  };
+
+  // Function to remove a notification
+  const removeNotification = (id: string) => {
+    setNotifications(prev => prev.map(notification => 
+      notification.id === id ? { ...notification, show: false } : notification
+    ));
+    
+    // Remove from state after animation completes
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(notification => notification.id !== id));
+    }, 300);
+  };
+
+  // Legacy function for backward compatibility
+  const showError = (message: string) => {
+    addNotification('error', '⚠️ Registration Error', message, 8000);
+  };
+
   // Address state
   const [regions, setRegions] = useState<AddressData[]>([]);
   const [provinces, setProvinces] = useState<AddressData[]>([]);
@@ -99,21 +145,6 @@ export default function RegistrationPage() {
     contactNumber: '',
     emailAddress: '',
   });
-
-  // Function to show error alert
-  const showError = (message: string) => {
-    setErrorMessage(message);
-    setShowErrorAlert(true);
-    // Auto-hide after 8 seconds
-    setTimeout(() => {
-      setShowErrorAlert(false);
-    }, 8000);
-  };
-
-  // Function to close error alert
-  const closeErrorAlert = () => {
-    setShowErrorAlert(false);
-  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -240,11 +271,14 @@ export default function RegistrationPage() {
     e.preventDefault();
     
     if (!terms) {
-      showError('Please accept the terms and conditions to continue.');
+      addNotification('warning', '⚠️ Terms Required', 'Please accept the terms and conditions to continue with your registration.', 4000);
       return;
     }
 
     setIsSubmitting(true);
+    
+    // Show processing notification
+    addNotification('info', '⏳ Processing Registration', 'Please wait while we process your registration...', 3000);
 
     try {
       const registrationData = {
@@ -297,6 +331,9 @@ export default function RegistrationPage() {
       const result = await response.json();
       console.log('Success result:', result);
 
+      // Show success notification
+      addNotification('success', '🎉 Registration Successful!', 'Your registration has been completed successfully. Welcome to the PGPGS family!', 5000);
+      
       // Show success message
       setShowSuccess(true);
 
@@ -473,12 +510,25 @@ export default function RegistrationPage() {
                 </div>
               </div>
             </div>
-            <div className="mt-8 text-center">
-              <h3 className="text-2xl font-bold text-slate-800 mb-2">Join Our Legacy</h3>
-              <p className="text-slate-600 max-w-md">
-                Be part of our golden anniversary celebration and continue the tradition of excellence.
-              </p>
-            </div>
+                          <div className="mt-8 text-center">
+                <h3 className="text-2xl font-bold text-slate-800 mb-2">Join Our Legacy</h3>
+                <p className="text-slate-600 max-w-md">
+                  Be part of our golden anniversary celebration and continue the tradition of excellence.
+                </p>
+                
+                {/* Demo Notifications Button (for testing) */}
+                <button
+                  onClick={() => {
+                    addNotification('info', 'ℹ️ Information', 'This is an informational notification with beautiful animations!', 4000);
+                    setTimeout(() => addNotification('success', '✅ Success', 'Operation completed successfully!', 4000), 1000);
+                    setTimeout(() => addNotification('warning', '⚠️ Warning', 'Please check your information before proceeding.', 4000), 2000);
+                    setTimeout(() => addNotification('error', '❌ Error', 'Something went wrong. Please try again.', 4000), 3000);
+                  }}
+                  className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
+                >
+                  🎭 Demo Notifications
+                </button>
+              </div>
           </div>
 
           {/* Registration Form */}
@@ -1135,130 +1185,111 @@ export default function RegistrationPage() {
         </div>
       )}
       
-      {/* Beautiful Animated Error Alert */}
-      {showErrorAlert && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[60] p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-slideUp border border-red-100 overflow-hidden">
-            {/* Error Header with Red Background */}
-            <div className="relative bg-gradient-to-br from-red-50 via-red-100 to-red-200 p-6 text-center overflow-hidden">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-4 left-4 w-8 h-8 bg-red-400 rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
-                <div className="absolute top-8 right-8 w-6 h-6 bg-red-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                <div className="absolute bottom-6 left-8 w-4 h-4 bg-red-600 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-                <div className="absolute bottom-4 right-6 w-5 h-5 bg-red-400 rounded-full animate-pulse" style={{animationDelay: '1.5s'}}></div>
+      {/* Beautiful Animated Alert Notifications */}
+      <div className="fixed top-4 right-4 z-[60] space-y-3">
+        {notifications.map((notification, index) => (
+          <div
+            key={notification.id}
+            className={`relative transform transition-all duration-500 ease-out ${
+              notification.show 
+                ? 'translate-x-0 opacity-100 scale-100' 
+                : 'translate-x-full opacity-0 scale-95'
+            }`}
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            {/* Notification Card */}
+            <div className={`
+              relative overflow-hidden rounded-xl shadow-2xl border border-white/20 backdrop-blur-sm
+              ${notification.type === 'error' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                notification.type === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-500' :
+                notification.type === 'success' ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
+                'bg-gradient-to-r from-blue-500 to-indigo-600'}
+              text-white p-4 min-w-[320px] max-w-[400px]
+            `}>
+              
+              {/* Animated Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-2 left-2 w-8 h-8 bg-white rounded-full animate-pulse" style={{animationDelay: '0s'}}></div>
+                <div className="absolute top-4 right-4 w-6 h-6 bg-white rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute bottom-3 left-4 w-4 h-4 bg-white rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
               </div>
               
-              {/* Error Icon with Animation */}
+              {/* Close Button */}
+              <button
+                onClick={() => removeNotification(notification.id)}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 transition-colors duration-200 flex items-center justify-center group"
+              >
+                <svg className="w-4 h-4 text-white group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              
+              {/* Content */}
               <div className="relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                
-                {/* Error Title */}
-                <h3 className="text-xl font-bold text-red-800 mb-2">
-                  ⚠️ Registration Error
-                </h3>
-              </div>
-            </div>
-            
-            {/* Error Content */}
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                  <p className="text-red-700 text-sm leading-relaxed font-medium">
-                    {errorMessage}
-                  </p>
-                </div>
-                
-                {/* Specific Error Type Detection */}
-                {errorMessage.includes("already exists") && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                    <div className="flex items-start">
-                      <div className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div className="text-left">
-                        <h6 className="font-semibold text-amber-800 mb-1">Duplicate Registration Detected</h6>
-                        <p className="text-sm text-amber-700">
-                          It appears you have already registered with this information. Please check your details or contact support if you believe this is an error.
-                        </p>
-                      </div>
+                <div className="flex items-start space-x-3">
+                  {/* Animated Icon */}
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
+                    ${notification.type === 'error' ? 'bg-red-400/30' :
+                      notification.type === 'warning' ? 'bg-amber-400/30' :
+                      notification.type === 'success' ? 'bg-green-400/30' :
+                      'bg-blue-400/30'}
+                    animate-bounce
+                  `}>
+                    {notification.type === 'error' && (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    )}
+                    {notification.type === 'warning' && (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    )}
+                    {notification.type === 'success' && (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {notification.type === 'info' && (
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    )}
+                  </div>
+                  
+                  {/* Text Content */}
+                  <div className="flex-1 min-w-0">
+                    <h6 className="font-bold text-sm mb-1">{notification.title}</h6>
+                    <p className="text-sm opacity-90 leading-relaxed">{notification.message}</p>
+                    
+                    {/* Progress Bar */}
+                    <div className="mt-3 w-full bg-white/20 rounded-full h-1 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all duration-100 ease-linear ${
+                          notification.type === 'error' ? 'bg-red-300' :
+                          notification.type === 'warning' ? 'bg-amber-300' :
+                          notification.type === 'success' ? 'bg-green-300' :
+                          'bg-blue-300'
+                        }`}
+                        style={{
+                          width: '100%',
+                          animation: `shrink ${notification.duration}ms linear forwards`
+                        }}
+                      ></div>
                     </div>
                   </div>
-                )}
-                
-                {/* Common Solutions */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                  <h6 className="font-semibold text-blue-800 mb-2 flex items-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    Suggested Solutions
-                  </h6>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li className="flex items-start">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                      Verify your contact number and email address
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                      Check if you&apos;ve already registered
-                    </li>
-                    <li className="flex items-start">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                      Contact support if you need assistance
-                    </li>
-                  </ul>
                 </div>
               </div>
               
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={closeErrorAlert}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-                >
-                  <span className="flex items-center justify-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    Close
-                  </span>
-                </button>
-                
-                <button
-                  onClick={() => {
-                    closeErrorAlert();
-                    // Scroll to top of form
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-                >
-                  <span className="flex items-center justify-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Try Again
-                  </span>
-                </button>
-              </div>
-              
-              {/* Auto-close indicator */}
-              <div className="mt-4 text-center">
-                <div className="w-full bg-gray-200 rounded-full h-1">
-                  <div className="bg-gradient-to-r from-red-400 to-red-600 h-1 rounded-full animate-[progress_8s_linear_forwards]"></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">This alert will close automatically in 8 seconds</p>
+              {/* Shimmer Effect */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shimmer"></div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
       </div>
     </>
   );
