@@ -515,19 +515,6 @@ export default function RegistrationPage() {
                 <p className="text-slate-600 max-w-md">
                   Be part of our golden anniversary celebration and continue the tradition of excellence.
                 </p>
-                
-                {/* Demo Notifications Button (for testing) */}
-                <button
-                  onClick={() => {
-                    addNotification('info', 'ℹ️ Information', 'This is an informational notification with beautiful animations!', 4000);
-                    setTimeout(() => addNotification('success', '✅ Success', 'Operation completed successfully!', 4000), 1000);
-                    setTimeout(() => addNotification('warning', '⚠️ Warning', 'Please check your information before proceeding.', 4000), 2000);
-                    setTimeout(() => addNotification('error', '❌ Error', 'Something went wrong. Please try again.', 4000), 3000);
-                  }}
-                  className="mt-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105"
-                >
-                  🎭 Demo Notifications
-                </button>
               </div>
           </div>
 
